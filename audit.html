@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>审计中心 · 全球市场每日观察面板</title>
+<style>
+  :root { --navy:#0b2545; --blue:#1b5fa8; --line:#d8e2ef; --bg:#f3f7fc; --ink:#16283f; --muted:#5b7089; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:14px; line-height:1.7; }
+  header { background:linear-gradient(100deg,var(--navy),#13395e); color:#fff; padding:18px 24px; }
+  header h1 { margin:0; font-size:22px; }
+  header p { margin:6px 0 0; color:#bcd4ec; font-size:13px; }
+  .wrap { max-width:1240px; margin:0 auto; padding:18px 20px 40px; }
+  .panel { background:#fff; border:1px solid var(--line); border-radius:10px; padding:16px 20px; }
+  .sources { margin-bottom:16px; }
+  .sources h2 { margin:0 0 8px; font-size:16px; color:var(--navy); }
+  .sources ul { list-style:none; margin:0; padding:0; display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:6px 18px; }
+  .sources li { display:flex; align-items:baseline; gap:8px; font-size:12.5px;
+    border-bottom:1px dashed var(--line); padding:3px 0; }
+  .sources a { color:var(--blue); text-decoration:none; font-weight:600; word-break:break-all; }
+  .sources a:hover { text-decoration:underline; }
+  .desc { color:var(--muted); font-size:11px; white-space:nowrap; }
+  .doc table { border-collapse:collapse; width:100%; margin:12px 0; font-size:12.5px; }
+  .doc th,.doc td { border:1px solid var(--line); padding:7px 9px; text-align:left; vertical-align:top; }
+  .doc th { background:var(--bg); color:var(--navy); }
+  .doc h2 { margin-top:28px; font-size:17px; color:var(--navy);
+    border-left:4px solid var(--blue); padding-left:10px; }
+  .doc h3 { margin-top:22px; font-size:15px; color:#13395e; }
+  .doc code { background:#eef3f9; padding:1px 4px; border-radius:3px; font-size:12px; }
+  .doc pre { background:#0f2338; color:#d7e6f6; padding:12px; border-radius:6px; overflow:auto; }
+  .doc blockquote { border-left:3px solid #7aa8d8; margin:12px 0; padding:4px 12px; color:#466; background:#f6fafe; }
+  footer { margin-top:20px; font-size:11px; color:var(--muted); text-align:center; }
+  @media(max-width:560px){ .doc table{font-size:11px;} .sources li{flex-direction:column;gap:2px;} }
+</style>
+<script>
+// 把当前分享链接中的 sharecode 自动透传到所有站内直链，避免点击后因缺少凭据被网关拦截。
+// 不硬编码具体码值：分享链接更换 sharecode 后可自适应。
+function __passShareCode() {
+  try {
+    var code = new URLSearchParams(location.search).get('sharecode');
+    if (!code) return;
+    document.querySelectorAll('a[href]').forEach(function (a) {
+      var href = a.getAttribute('href');
+      if (!href || /^(https?:|#|mailto:)/i.test(href)) return;
+      var u = new URL(href, location.href);
+      if (!u.searchParams.get('sharecode')) u.searchParams.set('sharecode', code);
+      a.setAttribute('href', u.pathname + u.search);
+    });
+  } catch (e) {}
+}
+if (document.readyState === 'loading')
+  document.addEventListener('DOMContentLoaded', __passShareCode);
+else __passShareCode();
+</script>
+</head>
+<body>
+<header>
+  <h1>审计中心 · 全球市场每日观察面板</h1>
+  <p>逐指标数据源与计算方法 · 阈值可配置 · 全部源码与测试数据公开可下载 · 版本 V1.0 / P0</p>
+</header>
+<div class="wrap">
+  <section class="panel sources">
+    <h2>源码与数据入口（点击直接查看原始文件）</h2>
+    <ul><li><a href="index.html" target="_blank" rel="noopener">index.html</a><span class="desc">页面入口</span></li>
+<li><a href="styles.css" target="_blank" rel="noopener">styles.css</a><span class="desc">样式</span></li>
+<li><a href="app.js" target="_blank" rel="noopener">app.js</a><span class="desc">前端渲染</span></li>
+<li><a href="core.py" target="_blank" rel="noopener">core.py</a><span class="desc">核心逻辑（单位/状态/解读）</span></li>
+<li><a href="config.json" target="_blank" rel="noopener">config.json</a><span class="desc">指标定义与阈值</span></li>
+<li><a href="scripts/update_data.py" target="_blank" rel="noopener">scripts/update_data.py</a><span class="desc">取数与快照生成</span></li>
+<li><a href="tests/test_core.py" target="_blank" rel="noopener">tests/test_core.py</a><span class="desc">26 项验收测试</span></li>
+<li><a href="README.md" target="_blank" rel="noopener">README.md</a><span class="desc">运行与部署说明</span></li>
+<li><a href="AUDIT.md" target="_blank" rel="noopener">AUDIT.md</a><span class="desc">本审计文档源文件</span></li>
+<li><a href="data/snapshot.json" target="_blank" rel="noopener">data/snapshot.json</a><span class="desc">当前真实快照</span></li>
+<li><a href="data/history.json" target="_blank" rel="noopener">data/history.json</a><span class="desc">滚动历史</span></li>
+<li><a href="requirements.txt" target="_blank" rel="noopener">requirements.txt</a><span class="desc">依赖</span></li>
+<li><a href="update-workflow.yml" target="_blank" rel="noopener">update-workflow.yml</a><span class="desc">每日自动更新流程</span></li>
+<li><a href="data/snapshot.js" target="_blank" rel="noopener">data/snapshot.js</a><span class="desc">供本地双击打开的快照包装</span></li></ul>
+  </section>
+  <section class="panel doc">
+    <h1>审计文档：全球市场每日观察面板（P0 / V1.0）</h1>
+<blockquote>
+<p>本文供第三方逐项核对：<strong>每个指标的数据源、字段、单位、计算口径、时间戳与缺失处理</strong>。
+所有实现均可在同目录源码中核对：<code>core.py</code>（纯逻辑）、<code>scripts/update_data.py</code>（取数与生成）、<code>config.json</code>（阈值与源映射）、<code>tests/test_core.py</code>（验收测试）。
+审计基准版本：<code>config.json</code> 的 <code>version = 1.0</code>；快照生成时区 <code>Asia/Tokyo (UTC+9)</code>。</p>
+</blockquote>
+<h2>公开源码仓库（供第三方 clone / 本地复现测试）</h2>
+<ul>
+<li>仓库分支：<code>weixb1818-cmyk/global-market-monitor</code> 的 <strong><code>audit-p0-v1</code></strong> 分支（与仓库 main 分支的另一实现版本隔离，未覆盖任何现有代码）。</li>
+<li>Clone：
+  <code>bash
+  git clone -b audit-p0-v1 https://github.com/weixb1818-cmyk/global-market-monitor.git
+  cd global-market-monitor
+  python3 -m pip install -r requirements.txt
+  python3 -m unittest discover -s tests -v     # 复现 26 项测试</code></li>
+<li>四个核心文件免登录直读：</li>
+<li><code>core.py</code>：<code>https://raw.githubusercontent.com/weixb1818-cmyk/global-market-monitor/audit-p0-v1/core.py</code></li>
+<li><code>config.json</code>：<code>https://raw.githubusercontent.com/weixb1818-cmyk/global-market-monitor/audit-p0-v1/config.json</code></li>
+<li><code>scripts/update_data.py</code>：<code>https://raw.githubusercontent.com/weixb1818-cmyk/global-market-monitor/audit-p0-v1/scripts/update_data.py</code></li>
+<li><code>tests/test_core.py</code>：<code>https://raw.githubusercontent.com/weixb1818-cmyk/global-market-monitor/audit-p0-v1/tests/test_core.py</code></li>
+<li>在线审计页：托管地址形如 <code>https://&lt;host&gt;/audit.html?sharecode=&lt;访问码&gt;</code>（访问码由发布方通过分享链接单独提供，不在源码仓库中硬编码；从带 sharecode 的入口进入后，站内源码链接会自动透传凭据）。</li>
+</ul>
+<h2>数据用途与许可声明（回应审计反馈）</h2>
+<p>本项目为<strong>非商业的个人学习与技术研究用途</strong>，页面不含投资建议，不转售、不再分发原始数据，并已按数据源标注出处与免责声明。我们理解公开托管可能超出严格意义的"个人使用"范畴，故在此如实披露各数据源的权利归属与许可风险：FRED 为免费分发方（数据多源自美国财政部等公共领域机构），但 <code>SP500</code>/<code>NASDAQ100</code>/<code>VIXCLS</code>/<code>BAMLH0A0HYM2</code> 的原始版权分别属于 S&amp;P Dow Jones Indices、Nasdaq、CBOE、BofA；ICE U.S. Dollar Index 为 ICE 注册商标，经 CNBC 非官方接口转发；CNBC 与 currency-api 均无 SLA 或公开分发许可。若后续拟公开商用或面向公众提供服务，应先行取得相关指数权利方（ICE、S&amp;P DJI、Nasdaq、CBOE、BofA）的授权，或改用具备公开分发许可的数据源。以上为工程角度的事实披露，不构成法律意见；如审计方为机构，建议由法务复核。</p>
+<hr />
+<h2>一、数据源清单（均为真实源，无模拟数据）</h2>
+<table>
+<thead>
+<tr>
+<th>代号</th>
+<th>名称</th>
+<th>端点模板</th>
+<th>认证</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>FRED</td>
+<td>St. Louis Fed CSV</td>
+<td><code>https://fred.stlouisfed.org/graph/fredgraph.csv?id={SERIES_ID}</code></td>
+<td>无</td>
+<td>美债收益率、利差、VIX、HY OAS、SP500、NASDAQ100；源端含完整日历史，<strong>本地 <code>history.json</code> 仅保留最近 400 期滚动窗口</strong>（<code>MAX_HISTORY=400</code>）</td>
+</tr>
+<tr>
+<td>CNBC</td>
+<td>CNBC 公开报价</td>
+<td><code>https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols={SYMBOLS}&amp;requestMethod=itv&amp;noform=1&amp;partnerId=2&amp;fund=1&amp;exthrs=1&amp;output=json</code></td>
+<td>无</td>
+<td>原生 ICE DXY、股指、COMEX/NYMEX 近月期货、BTC/ETH 现货；当前值与前收盘</td>
+</tr>
+<tr>
+<td>currency-api</td>
+<td>开源汇率经 jsDelivr</td>
+<td><code>https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@{date}/v1/currencies/usd.min.json</code>；<code>...@latest/...</code></td>
+<td>无</td>
+<td>USD/JPY、USD/CNH 日快照；按日期可回溯约 25 天</td>
+</tr>
+<tr>
+<td>CoinGecko</td>
+<td>官方 API（可选）</td>
+<td><code>https://api.coingecko.com/api/v3/coins/{coin}/market_chart?vs_currency=usd&amp;days=30&amp;interval=daily</code></td>
+<td><code>COINGECKO_API_KEY</code>（环境变量，放 GitHub Secrets）</td>
+<td>可选加密历史；默认关闭（<code>config.json</code> 中 <code>enabled=false</code>）</td>
+</tr>
+</tbody>
+</table>
+<p><strong>请求头注意（可复现性关键点）</strong>：FRED 对 <code>curl/7.81.0</code> 以外的 UA 会返回连接重置；CNBC 则需要浏览器 UA。实现中通过 <code>config.json</code> 的 <code>network.user_agent</code>（默认 <code>curl/7.81.0</code>）与 <code>sources.cnbc.user_agent</code> 分别设置。若第三方复现失败，请先核对 UA。</p>
+<p><strong>未采用及原因</strong>：Stooq / Yahoo Finance / CoinGecko（默认）/ Binance / Coinbase 在开发环境超时或 HTTP 429；FRED 的 <code>DTWEXBGS</code> 是贸易加权美元指数，规格禁止冒充原生 DXY，故不用；CNBC 免费接口不提供可回溯日线历史。</p>
+<hr />
+<h2>二、17 个指标逐项审计</h2>
+<h3>通用计算定义（适用于下表全部指标）</h3>
+<ul>
+<li><strong>有效观测</strong>：数值字段非 <code>null</code>、非 <code>.</code>（FRED 缺失标记）、非 <code>NA</code>，且日期为 <code>YYYY-MM-DD</code> 可解析。</li>
+<li><strong><code>value</code></strong>：按日期升序合并后的最新有效观测（新抓取优先于历史同日值）。</li>
+<li><strong><code>change_1</code>（日变化）</strong>：优先采用数据源自带日变化（CNBC 的 <code>change_pct</code>）；否则按相邻两个有效观测计算。</li>
+<li><strong><code>change_20</code>（近20期变化）</strong>：当前值相对 <strong>倒数第 21 个</strong> 有效观测的变化，即最近 <strong>20 个有效观测间隔</strong>；观测数 &lt; 21 时返回 <code>null</code>，页面显示 <code>—</code>。不是减 20 个日历日。</li>
+<li><strong>换算函数</strong>（<code>core.py</code>）：</li>
+<li>价格 / 指数 / 外汇 / DXY：<code>(current / previous - 1) × 100</code>，单位 <code>%</code></li>
+<li>收益率 / 利差：<code>(current - previous) × 100</code>，单位 <code>bp</code></li>
+<li>VIX：<code>current - previous</code>，单位 <code>点</code></li>
+<li>FRED 利差水平转 bp：<code>value × 100</code></li>
+<li><strong><code>as_of</code></strong>：最新有效观测的数据源日期，逐卡展示；总览声明"本页数据截至各卡标注日期"。</li>
+<li><strong><code>status</code></strong>：<code>ok</code> / <code>stale</code>（延迟）/ <code>missing</code>（无数据）/ <code>error</code>（取数失败）；后三者小字固定为"数据暂未更新，截至 YYYY-MM-DD"，不生成方向性解读。</li>
+</ul>
+<h3>2.1 宏观组（8 项）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>指标</th>
+<th>数据源与标识</th>
+<th>原始字段 → 显示值</th>
+<th>单位换算</th>
+<th>变化计算</th>
+<th>as_of 来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>美元指数 DXY</td>
+<td>CNBC <code>.DXY</code>（ICE U.S. Dollar Index）</td>
+<td><code>last</code> → 指数点</td>
+<td>无</td>
+<td><code>change_pct</code>；历史由 <code>history.json</code> 累积后按 <code>%</code> 公式</td>
+<td><code>last_time</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>美国2年期国债收益率</td>
+<td>FRED <code>DGS2</code></td>
+<td><code>DGS2</code> 数值 → <code>4.76%</code></td>
+<td>原值即百分数，显示 <code>%.2f%%</code></td>
+<td><code>(cur-prev)×100</code> → bp</td>
+<td>CSV <code>observation_date</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>美国10年期国债收益率</td>
+<td>FRED <code>DGS10</code></td>
+<td>同上</td>
+<td>同上</td>
+<td>同上</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>4</td>
+<td>美国10年期实际收益率</td>
+<td>FRED <code>DFII10</code>（10年 TIPS 收益率，非 CPI 相减）</td>
+<td>同上</td>
+<td>同上</td>
+<td>同上</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>5</td>
+<td>10Y-2Y 利差</td>
+<td>FRED <code>T10Y2Y</code>（<strong>原始序列</strong>，非自行相减）</td>
+<td>原始 <code>0.29</code> → <code>+29bp</code></td>
+<td><code>×100</code>；带正负号</td>
+<td><code>(cur-prev)×100</code> → bp</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>6</td>
+<td>10Y-3M 利差</td>
+<td>FRED <code>T10Y3M</code>（原始序列）</td>
+<td>同上</td>
+<td>同上</td>
+<td>同上</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>7</td>
+<td>VIX</td>
+<td>FRED <code>VIXCLS</code>（收盘）</td>
+<td>原始点数 → <code>28.44</code></td>
+<td>无</td>
+<td><code>cur-prev</code> → 点（<strong>不用百分比</strong>）</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>8</td>
+<td>HY OAS</td>
+<td>FRED <code>BAMLH0A0HYM2</code>（期权调整信用利差，非债券收益率）</td>
+<td>原始 <code>3.52</code> → <code>352bp</code>（不带正号）</td>
+<td><code>×100</code></td>
+<td><code>(cur-prev)×100</code> → bp</td>
+<td>同上</td>
+</tr>
+</tbody>
+</table>
+<p><strong>利差校验</strong>：<code>tests/test_core.py</code> 验证 <code>DGS10=4.30, DGS2=4.00 → 10Y-2Y=+30bp</code>、<code>DGS10=4.00, DGS2=4.50 → -50bp</code>；利差水平若与同日 DGS10/DGS2 相差超过合理误差会记录告警（实现中使用 FRED 原始利差为主值，不以跨日相减结果替代）。</p>
+<h3>2.2 美股组（2 项）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>指标</th>
+<th>数据源与标识</th>
+<th>原始字段 → 显示值</th>
+<th>变化计算</th>
+<th>as_of 来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9</td>
+<td>标普500指数</td>
+<td>FRED <code>SP500</code>（指数本身，非 SPY ETF）+ CNBC <code>.SPX</code> 补充最新日</td>
+<td><code>last</code> → 点</td>
+<td><code>change_pct</code>；无该字段时按合并序列 <code>%</code> 公式</td>
+<td><code>last_time</code> / CSV 日期</td>
+</tr>
+<tr>
+<td>10</td>
+<td>纳斯达克100指数</td>
+<td>FRED <code>NASDAQ100</code>（<strong>非</strong>纳斯达克综合指数）+ CNBC <code>.NDX</code></td>
+<td>同上</td>
+<td>同上</td>
+<td>同上</td>
+</tr>
+</tbody>
+</table>
+<p>说明：FRED 序列提供完整历史，CNBC 提供更新一日的收盘；<code>merge_series()</code> 按日期去重合并后计算，因此"近20期"来自同一指数的连续有效观测，不混入 ETF。</p>
+<h3>2.3 大宗组（3 项，均为近月期货）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>指标</th>
+<th>数据源与标识</th>
+<th>单位</th>
+<th>变化计算</th>
+<th>as_of 来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>11</td>
+<td>黄金 COMEX 近月期货</td>
+<td>CNBC <code>@GC.1</code>（名称含合约月份，如 Dec'26）</td>
+<td>USD/oz</td>
+<td><code>change_pct</code>；历史累积后按 <code>%</code> 公式</td>
+<td><code>last_time</code></td>
+</tr>
+<tr>
+<td>12</td>
+<td>WTI NYMEX 近月期货</td>
+<td>CNBC <code>@CL.1</code>（合约月份固定口径）</td>
+<td>USD/bbl</td>
+<td>同上</td>
+<td>同上</td>
+</tr>
+<tr>
+<td>13</td>
+<td>铜 COMEX 近月期货</td>
+<td>CNBC <code>@HG.1</code></td>
+<td>USD/lb（<strong>不是</strong> USD/吨）</td>
+<td>同上</td>
+<td>同上</td>
+</tr>
+</tbody>
+</table>
+<p>合约换月：CNBC 的 <code>.1</code> 代表近月连续报价；页面名称显示其实际合约月份，避免"期货写成现货"。换月跳跃属于真实市场口径，不由脚本平滑处理。</p>
+<h3>2.4 加密组（2 项，现货口径）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>指标</th>
+<th>数据源与标识</th>
+<th>单位</th>
+<th>变化计算</th>
+<th>as_of 来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>14</td>
+<td>BTC 现货</td>
+<td>CNBC <code>BTC=</code>（Bitcoin/US Dollar FX Spot Rate）；可选 CoinGecko <code>bitcoin</code> 覆盖</td>
+<td>USD</td>
+<td><code>change_pct</code>；CoinGecko 启用时按 <code>%</code> 公式</td>
+<td><code>last_time</code> / UTC 日</td>
+</tr>
+<tr>
+<td>15</td>
+<td>ETH 现货</td>
+<td>CNBC <code>ETH=</code>（Ether/US Dollar FX Spot Rate）；可选 CoinGecko <code>ethereum</code></td>
+<td>USD</td>
+<td>同上</td>
+<td>同上</td>
+</tr>
+</tbody>
+</table>
+<p>BTC/ETH 为 24×7 市场：<code>is_stale()</code> 对 <code>kind=crypto</code> 采用 <strong>36 小时</strong>阈值（其余指标采用"超过 2 个预期发布交易日"）；近20期口径为 20 个日观测（约 20 天）。<strong>未使用</strong>灰度 ETF（<code>BTC</code>、<code>ETH</code> 符号）冒充现货。</p>
+<h3>2.5 外汇组（2 项）</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>指标</th>
+<th>数据源与标识</th>
+<th>原始字段 → 显示值</th>
+<th>变化计算</th>
+<th>as_of 来源</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>16</td>
+<td>USD/JPY</td>
+<td>currency-api <code>usd.jpy</code></td>
+<td>1 美元折合日元，显示 <code>%.3f</code></td>
+<td>相邻观测 <code>%</code> 公式</td>
+<td>快照 JSON 的 <code>date</code> 字段</td>
+</tr>
+<tr>
+<td>17</td>
+<td>USD/CNH（离岸）</td>
+<td>currency-api <code>usd.cnh</code></td>
+<td>1 美元折合离岸人民币，显示 <code>%.3f</code></td>
+<td>同上</td>
+<td>同上</td>
+</tr>
+</tbody>
+</table>
+<p><strong>方向含义</strong>：上涨 = 美元相对日元/离岸人民币升值（<code>card_note()</code> 明确写出），下跌则反之。<strong>未使用</strong> <code>usd.cny</code>（在岸）替代 CNH。</p>
+<hr />
+<h2>三、宏观状态识别审计</h2>
+<h3>3.1 输入（全部来自上表指标的近20期变化或当前水平）</h3>
+<p><code>dxy20</code>、<code>real20bp</code>（10Y实际）、<code>twoYear20bp</code>（2Y）、<code>hy20bp</code>、<code>vix20pt</code>、<code>hyNow</code>、<code>vixNow</code>。
+利差与 10Y 名义收益率仅作解释项，不独立加权。</p>
+<h3>3.2 阈值（<code>config.json</code> → <code>macro_thresholds</code>，非硬编码）</h3>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>阈值</th>
+<th>方向</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>美元显著走强 / 走弱</td>
+<td><code>dxy20 &gt;= +1.0%</code> / <code>&lt;= -1.0%</code></td>
+<td>强 / 弱</td>
+</tr>
+<tr>
+<td>实际利率显著上行 / 下行</td>
+<td><code>real20bp &gt;= +15</code> / <code>&lt;= -15</code></td>
+<td>bp</td>
+</tr>
+<tr>
+<td>信用风险走高</td>
+<td><code>hy20bp &gt;= +25bp</code>；高位 <code>hyNow &gt;= 450bp</code></td>
+<td>bp</td>
+</tr>
+<tr>
+<td>波动风险走高</td>
+<td><code>vix20pt &gt;= +3点</code>；高位 <code>vixNow &gt;= 25</code></td>
+<td>点</td>
+</tr>
+<tr>
+<td>短端显著下行</td>
+<td><code>twoYear20bp &lt;= -25bp</code></td>
+<td>bp</td>
+</tr>
+</tbody>
+</table>
+<h3>3.3 分类顺序（<code>core.py: classify_macro()</code>，按顺序匹配，只显示一个主状态）</h3>
+<ol>
+<li><strong>金融压力扩散</strong>：<code>hy20bp &gt;= +25</code> 且 <code>vix20pt &gt;= +3</code></li>
+<li><strong>增长担忧定价</strong>：<code>twoYear20bp &lt;= -25</code> 且（<code>hy20bp &gt;= +25</code> 或 <code>vix20pt &gt;= +3</code>）</li>
+<li><strong>金融条件趋紧</strong>：<code>dxy20 &gt;= +1.0</code> 且 <code>real20bp &gt;= +15</code></li>
+<li><strong>温和宽松</strong>：<code>dxy20 &lt;= -1.0</code> 且 <code>real20bp &lt;= -15</code> 且 <code>hy20bp &lt; +25</code> 且 <code>vix20pt &lt; +3</code> 且 <code>hyNow &lt; 450</code> 且 <code>vixNow &lt; 25</code></li>
+<li><strong>中性/信号分歧</strong>：其余，列出互相矛盾的信号，不强行看多/看空</li>
+</ol>
+<h3>3.4 强制约束</h3>
+<ul>
+<li>上述 7 个输入中<strong>任一关键 20 期数据缺失或超期</strong> → 输出 <code>数据不足：暂不判断</code>，并列出缺失项；<strong>不沿用昨日结论</strong>。</li>
+<li>高位但大幅回落不判为"扩散"（规则 1 要求 20 期同时上行）。</li>
+<li>顶部结构为"状态 + 为什么 + 不确定因素"。</li>
+<li>禁止输出买入/卖出/做多/做空/必涨等投资指令；倒挂恢复不得写成"经济复苏"。</li>
+</ul>
+<h3>3.5 当前部署的真实状态</h3>
+<p>截至本次生成，FRED 系指标（历史 400 期）与外汇 USD/JPY、USD/CNH（历史 25 期）已具备 20 期变化；以下 <strong>6 个指标的 20 期变化当前均为空（<code>—</code>）</strong>：<strong>DXY、黄金 COMEX、WTI、铜 COMEX、BTC、ETH</strong>——它们的 <code>history.json</code> 目前各只有 <strong>1 个观测</strong>，近20期变化依赖脚本每日运行累积（CNBC 免费接口不提供可回溯日线）。因此宏观状态正确显示为"数据不足：暂不判断（缺少 dxy20 等）"。这是规格要求的行为，<strong>不是故障</strong>，也不通过补造历史规避。注意 <code>change_20</code> 需要 <strong>21 个有效观测</strong>（当前值 + 倒数第 21 个），即再积累 20 个交易日后才会自动转为正常分类。</p>
+<hr />
+<h2>四、小字解读审计（<code>core.py: card_note()</code>）</h2>
+<p>按指标 ID 使用固定中文模板，阈值来自 <code>config.json → note_thresholds</code>，无大模型、无随机性。要点：</p>
+<ul>
+<li>DXY 近20期 ≥ +1% → "美元走强，关注全球风险资产压力"；≤ -1% → "美元走弱，外部美元压力可能缓解"</li>
+<li>2Y ≤ -25bp → "短端利率下行，市场可能增加降息定价"；≥ +25bp → "短端利率上行，政策利率预期偏紧"</li>
+<li>10Y / 实际利率 / VIX / HY OAS 按各自阈值输出上行/下行/稳定文案</li>
+<li>10Y-2Y、10Y-3M：先判倒挂/正利差，再按 ±15bp 补"曲线变陡/变平"；变陡时用同日 2Y/10Y 变化解释"短端下降更快/长端上升更快/混合驱动"，不提示看多</li>
+<li>外汇按方向写"美元相对日元/离岸人民币升值/贬值"</li>
+<li>数据缺失或 <code>change_20 is None</code> → "数据暂未更新，截至 YYYY-MM-DD"，<strong>不生成方向性解读</strong></li>
+</ul>
+<hr />
+<h2>五、时间、过期与失败处理审计</h2>
+<table>
+<thead>
+<tr>
+<th>场景</th>
+<th>实现</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>美股/期货/外汇</td>
+<td>使用数据源最新已完成交易时段；逐卡显示 <code>as_of</code></td>
+</tr>
+<tr>
+<td>BTC/ETH</td>
+<td>24×7；超过 36 小时无新日值标 <code>stale</code></td>
+</tr>
+<tr>
+<td>普通指标延迟</td>
+<td><code>expected_trading_days_between(as_of, today) &gt; 2</code> 标 <code>stale</code>（含美国主要假日与周末判断）</td>
+</tr>
+<tr>
+<td>周末/美国假日</td>
+<td>正常休市不虚报故障；页面标注各卡日期与"非同一时刻实时行情"</td>
+</tr>
+<tr>
+<td>单源失败</td>
+<td>保留上一次有效值并标 <code>stale</code>，记录 <code>failed_sources</code>；不影响其他指标</td>
+</tr>
+<tr>
+<td>数据损坏</td>
+<td>原子写入（临时文件 + <code>os.replace</code>）；格式校验失败不写快照</td>
+</tr>
+<tr>
+<td>浏览器端</td>
+<td>只读取静态 JSON/JS，不暴露任何 API Key，无实时 WebSocket</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2>六、测试覆盖（<code>tests/test_core.py</code>，26 项全通过）</h2>
+<ol>
+<li>17 指标名称与单位完整且正确；配置中无就业/ISM/CPI 等越界指标</li>
+<li>10Y-2Y 正负 bp 计算；HY OAS 3.20% → 320bp；变化不混淆 <code>%</code> 与 <code>bp</code></li>
+<li>USD/CNH、USD/JPY 方向文案正确</li>
+<li>五种宏观状态分支 + 高位回落不误判 + 关键数据缺失不判断 + 无投资指令措辞</li>
+<li>曲线由 -20bp 到 +10bp 只写"倒挂结束/曲线变陡"，不写"经济复苏"</li>
+<li>近20期需 21 个观测；日变化优先用源自带值</li>
+<li>周末不误报、<code>&gt;2</code> 交易日与加密 36 小时阈值、假日表存在</li>
+<li>小字长度上限 45 字；缺失数据文案含日期且无方向词</li>
+</ol>
+<p>运行方式：<code>python3 -m unittest discover -s tests -v</code></p>
+<hr />
+<h2>七、已知限制（供审计判定，非隐瞒项）</h2>
+<ul>
+<li>CNBC 为公开网页报价接口，非有 SLA 的官方开发者 API；currency-api 为社区源，非央行官方源。稳定性与使用条款见 <code>README.md</code>。</li>
+<li>CoinGecko 在开发环境不可达，适配器已实现但默认关闭；启用后覆盖 CNBC 加密源。</li>
+<li>DXY / 黄金 / WTI / 铜 / BTC / ETH 的近20期变化依赖每日运行累积，初始部署显示 <code>—</code>，宏观判断相应显示"数据不足"。</li>
+<li>宏观规则为 V1 解释性分类，阈值未经回测，不声称科学预测。</li>
+<li>本审计文档随源码一同发布；如数据与文档不一致，以 <code>config.json</code> 与快照 <code>data/snapshot.json</code> 的实际字段为准。</li>
+</ul>
+  </section>
+  <footer>本文由 scripts/build_audit_page.py 从 AUDIT.md 自动生成；以源码与快照实际字段为准。</footer>
+</div>
+</body>
+</html>
