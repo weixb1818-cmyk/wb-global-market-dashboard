@@ -1,0 +1,51 @@
+name: 每日更新市场快照
+
+on:
+  schedule:
+    # UTC 00:15 ≈ 东京时间 09:15；GitHub 调度可能延迟数分钟
+    - cron: '15 0 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-snapshot
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: 检出仓库
+        uses: actions/checkout@v4
+
+      - name: 设置 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+
+      - name: 安装依赖
+        run: pip install -r requirements.txt
+
+      - name: 运行单元测试
+        run: python3 -m unittest discover -s tests -v
+
+      - name: 抓取数据并生成快照
+        env:
+          COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
+        run: python3 scripts/update_data.py
+
+      - name: 提交数据变更
+        run: |
+          git config user.name "daily-snapshot-bot"
+          git config user.email "daily-snapshot-bot@users.noreply.github.com"
+          git add data/snapshot.json data/snapshot.js data/history.json
+          if git diff --cached --quiet; then
+            echo "数据无变化，跳过提交"
+          else
+            git commit -m "chore: 更新每日市场快照 $(date -u +%Y-%m-%d)"
+            git push
+          fi
