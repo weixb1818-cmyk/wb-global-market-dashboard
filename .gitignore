@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.zip
+*.tar.gz
+*.zip.txt
+.DS_Store
