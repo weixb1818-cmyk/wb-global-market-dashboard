@@ -1,0 +1,112 @@
+{
+  "version": "1.0",
+  "timezone": "Asia/Tokyo",
+  "change_window": 20,
+  "macro_thresholds": {
+    "dxy20_strong_pct": 1.0,
+    "dxy20_weak_pct": -1.0,
+    "real20_up_bp": 15,
+    "real20_down_bp": -15,
+    "hy20_widen_bp": 25,
+    "hy20_tighten_bp": -25,
+    "hy_high_bp": 450,
+    "vix20_up_pt": 3,
+    "vix20_down_pt": -3,
+    "vix_high": 25,
+    "twoyear20_down_bp": -25,
+    "twoyear20_up_bp": 25
+  },
+  "note_thresholds": {
+    "dxy_significant_pct": 1.0,
+    "twoyear_big_bp": 25,
+    "tenyear_significant_bp": 15,
+    "real_significant_bp": 15,
+    "curve_significant_bp": 15,
+    "vix_significant_pt": 3,
+    "hy_significant_bp": 25,
+    "equity_significant_pct": 5.0,
+    "commodity_significant_pct": 5.0,
+    "crypto_significant_pct": 10.0,
+    "fx_significant_pct": 1.0
+  },
+  "staleness": {
+    "max_expected_trading_days": 2,
+    "crypto_max_hours": 36
+  },
+  "network": {
+    "timeout_seconds": 20,
+    "retries": 2,
+    "user_agent": "curl/7.81.0"
+  },
+  "indicators": [
+    {"id": "dxy",          "name": "美元指数 DXY",        "group": "宏观", "unit": "点",     "kind": "index",    "display": "index"},
+    {"id": "us2y",         "name": "美国2年期国债收益率",  "group": "宏观", "unit": "%",      "kind": "yield",    "display": "percent"},
+    {"id": "us10y",        "name": "美国10年期国债收益率", "group": "宏观", "unit": "%",      "kind": "yield",    "display": "percent"},
+    {"id": "us10y_real",   "name": "美国10年期实际收益率", "group": "宏观", "unit": "%",      "kind": "yield",    "display": "percent"},
+    {"id": "t10y2y",       "name": "10Y-2Y 利差",         "group": "宏观", "unit": "bp",     "kind": "spread",   "display": "bp"},
+    {"id": "t10y3m",       "name": "10Y-3M 利差",         "group": "宏观", "unit": "bp",     "kind": "spread",   "display": "bp"},
+    {"id": "vix",          "name": "VIX 波动率指数",       "group": "宏观", "unit": "点",     "kind": "vix",      "display": "index"},
+    {"id": "hy_oas",       "name": "高收益债信用利差 HY OAS", "group": "宏观", "unit": "bp", "kind": "spread",   "display": "bp", "signed_level": false},
+
+    {"id": "sp500",        "name": "标普500指数",          "group": "美股", "unit": "点",     "kind": "index",    "display": "index"},
+    {"id": "nasdaq100",    "name": "纳斯达克100指数",      "group": "美股", "unit": "点",     "kind": "index",    "display": "index"},
+
+    {"id": "gold",         "name": "黄金 COMEX 近月期货",   "group": "大宗", "unit": "USD/oz",  "kind": "price",    "display": "price"},
+    {"id": "wti",          "name": "WTI NYMEX 近月期货",   "group": "大宗", "unit": "USD/bbl", "kind": "price",    "display": "price"},
+    {"id": "copper",       "name": "铜 COMEX 近月期货",     "group": "大宗", "unit": "USD/lb",  "kind": "price",    "display": "price"},
+
+    {"id": "btc",          "name": "比特币 BTC 现货",      "group": "加密", "unit": "USD",     "kind": "crypto",   "display": "price"},
+    {"id": "eth",          "name": "以太坊 ETH 现货",      "group": "加密", "unit": "USD",     "kind": "crypto",   "display": "price"},
+
+    {"id": "usdjpy",       "name": "USD/JPY",             "group": "外汇", "unit": "JPY/USD", "kind": "fx",       "display": "fx"},
+    {"id": "usdcnh",       "name": "USD/CNH 离岸人民币",   "group": "外汇", "unit": "CNH/USD", "kind": "fx",       "display": "fx"}
+  ],
+  "sources": {
+    "fred": {
+      "base_url": "https://fred.stlouisfed.org/graph/fredgraph.csv",
+      "license": "FRED 公开 CSV 下载端点，无需 API Key；使用时遵守 St. Louis Fed 使用条款",
+      "series": {
+        "us2y":       "DGS2",
+        "us10y":      "DGS10",
+        "us10y_real": "DFII10",
+        "t10y2y":     "T10Y2Y",
+        "t10y3m":     "T10Y3M",
+        "vix":        "VIXCLS",
+        "hy_oas":     "BAMLH0A0HYM2",
+        "sp500":      "SP500",
+        "nasdaq100":  "NASDAQ100",
+        "dgs3mo":     "DGS3MO"
+      }
+    },
+    "cnbc": {
+      "base_url": "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol",
+      "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+      "params": "requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json",
+      "license": "CNBC 公开行情页面接口，非官方开发者 API；仅作个人每日观察，稳定性与使用条款见 README",
+      "symbols": {
+        "dxy":       ".DXY",
+        "sp500":     ".SPX",
+        "nasdaq100": ".NDX",
+        "gold":      "@GC.1",
+        "wti":       "@CL.1",
+        "copper":    "@HG.1",
+        "btc":       "BTC=",
+        "eth":       "ETH="
+      }
+    },
+    "currency_api": {
+      "base_url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@{date}/v1/currencies/usd.min.json",
+      "latest_url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json",
+      "license": "开源 currency-api 经 jsDelivr CDN 分发，按日期提供日快照；非央行官方源，见 README",
+      "history_days": 25,
+      "pairs": {"usdjpy": "jpy", "usdcnh": "cnh"}
+    },
+    "coingecko": {
+      "enabled": false,
+      "note": "可选适配器：本环境连接超时。如需启用，设置 config.json 中 enabled=true；免费 Demo 有速率限制，密钥放 GitHub Secrets，不得暴露到浏览器。",
+      "simple_url": "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd",
+      "market_chart_url": "https://api.coingecko.com/api/v3/coins/{coin}/market_chart?vs_currency=usd&days=30&interval=daily",
+      "ids": {"btc": "bitcoin", "eth": "ethereum"}
+    }
+  }
+}
