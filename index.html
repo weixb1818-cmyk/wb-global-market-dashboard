@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>全球市场每日观察</title>
+  <meta name="description" content="每日更新一次的全球金融市场观察面板：17项指标、宏观状态识别与动态解读。">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <h1>全球市场每日观察</h1>
+          <p class="subtitle">每日收盘后 1 分钟，看懂美元、利率、风险与跨资产走势</p>
+        </div>
+      </div>
+      <div class="stamp" id="stamp">正在载入快照…</div>
+    </header>
+
+    <section class="macro-panel" id="macro-panel" aria-live="polite">
+      <div class="macro-main">
+        <div class="macro-label">宏观状态</div>
+        <div class="macro-state" id="macro-state">—</div>
+        <div class="macro-why" id="macro-why"></div>
+      </div>
+      <div class="macro-side">
+        <div class="uncertainty" id="macro-uncertainty"></div>
+        <div class="data-note" id="data-note"></div>
+      </div>
+    </section>
+
+    <main id="board"></main>
+
+    <footer class="footer">
+      <span>本页仅展示市场价格信号，不含投资建议；<a href="audit.html">审计文档与源码</a>公开可查。</span>
+      <span id="failed-sources"></span>
+    </footer>
+  </div>
+
+  <script src="data/snapshot.js"></script>
+  <script src="app.js"></script>
+  <script>
+  // 分享链接带 sharecode 时，透传给站内跳转链接，避免点击后 403。
+  function __passShareCode() {
+    try {
+      var code = new URLSearchParams(location.search).get('sharecode');
+      if (!code) return;
+      document.querySelectorAll('a[href]').forEach(function (a) {
+        var href = a.getAttribute('href');
+        if (!href || /^(https?:|#|mailto:)/i.test(href)) return;
+        var u = new URL(href, location.href);
+        if (!u.searchParams.get('sharecode')) u.searchParams.set('sharecode', code);
+        a.setAttribute('href', u.pathname + u.search);
+      });
+    } catch (e) {}
+  }
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', __passShareCode);
+  else __passShareCode();
+  </script>
+</body>
+</html>
