@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated_at": "2026-11-21T18:33:12+09:00",
+  "updated_at": "2026-11-22T15:43:49+09:00",
   "series": {
     "dxy": [
       {
@@ -18053,12 +18053,22 @@
         "date": "2026-11-21",
         "value": 57894.55,
         "source": "CNBC:BTC="
+      },
+      {
+        "date": "2026-11-22",
+        "value": 59064.21,
+        "source": "CNBC:BTC="
       }
     ],
     "eth": [
       {
         "date": "2026-11-21",
         "value": 1639.68,
+        "source": "CNBC:ETH="
+      },
+      {
+        "date": "2026-11-22",
+        "value": 1659.22,
         "source": "CNBC:ETH="
       }
     ],
@@ -18187,6 +18197,11 @@
         "date": "2026-11-21",
         "value": 158.55033346,
         "source": "currency-api/jsDelivr"
+      },
+      {
+        "date": "2026-11-22",
+        "value": 158.5592081,
+        "source": "currency-api/jsDelivr"
       }
     ],
     "usdcnh": [
@@ -18313,6 +18328,11 @@
       {
         "date": "2026-11-21",
         "value": 6.68155531,
+        "source": "currency-api/jsDelivr"
+      },
+      {
+        "date": "2026-11-22",
+        "value": 6.67674044,
         "source": "currency-api/jsDelivr"
       }
     ]
