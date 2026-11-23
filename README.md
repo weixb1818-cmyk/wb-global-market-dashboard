@@ -5,7 +5,8 @@
 ## 1. 快速开始（本地）
 
 ```bash
-cd global-market-dashboard
+git clone https://github.com/weixb1818-cmyk/wb-global-market-dashboard.git
+cd wb-global-market-dashboard
 python3 -m pip install -r requirements.txt      # 仅需 requests
 python3 -m unittest discover -s tests -v         # 运行测试
 python3 scripts/update_data.py                   # 抓取真实数据，生成快照
@@ -26,7 +27,7 @@ python3 scripts/update_data.py                   # 抓取真实数据，生成�
 
 | 指标组 | 数据源 | 取数方式 | 历史 | 说明 |
 |---|---|---|---|---|
-| 2Y / 10Y / 实际收益率 / 10Y-2Y / 10Y-3M / VIX / HY OAS / 标普500 / 纳指100 | **FRED**（St. Louis Fed） | 公开 CSV 端点 `fredgraph.csv?id=...`，无需 Key | 完整日历史 | 官方、稳定；利差用 FRED 原始序列，不跨日期相减 |
+| 2Y / 10Y / 实际收益率 / 10Y-2Y / 10Y-3M / VIX / HY OAS / 标普500 / 纳指100 | **FRED**（St. Louis Fed） | 公开 CSV 端点 `fredgraph.csv?id=...`，无需 Key | 源端完整日历史；本地 `history.json` 保留最近 400 期滚动窗口 | FRED 为免费分发方；利差用 FRED 原始序列，不跨日期相减；部分序列原始版权归 S&P/Nasdaq/CBOE/BofA，见下方许可声明 |
 | DXY（ICE 美元指数）、标普500、纳指100、COMEX 黄金/WTI 原油/铜**近月期货**、BTC/ETH 现货 | **CNBC** 公开行情页接口 | `restQuote` JSON，无需 Key | 当前值 + 前收盘（可算日变化） | 非官方开发者 API，见下方稳定性说明 |
 | USD/JPY、USD/CNH（**离岸**） | **currency-api** 经 jsDelivr CDN | 按日期的日快照 JSON | 可回溯 25 天 | 非央行官方源，见下方说明 |
 | BTC/ETH（可选） | CoinGecko | 官方 API，Key 放 Secrets | 30 天日线 | 本环境连接超时，默认关闭；启用方法见 2.3 |
@@ -95,7 +96,8 @@ global-market-dashboard/
 | 现象 | 原因与处理 |
 |---|---|
 | 页面显示“快照不可用” | 尚未运行 `update_data.py`，或 `data/snapshot.js` 损坏。重新运行脚本。 |
-| 某卡显示“数据延迟 / 数据缺失” | 对应数据源超时或返回缺失值；脚本保留上一次有效值并标记日期。查看运行日志与 `failed_sources`。 |
+| 某卡显示“数据暂未更新” | 对应数据源超时或该指标取数失败；脚本保留上一次有效值、标 `stale` 并标注日期。查看运行日志、`failed_sources` 与 `failed_indicators`。 |
+| 某卡显示“历史样本不足，等待积累” | 当前价格正常，只是近20期历史观测不够 21 个（新部署常见）。不是数据源故障，等待每日运行累积即可。 |
 | 宏观状态显示“数据不足：暂不判断” | DXY / 实际利率 / 2Y / HY OAS / VIX 的 20 期变化尚不齐（新部署前约 20 个交易日常见）。等待累积，不要手动填数。 |
 | FRED 值为 `.` | FRED 用 `.` 表示缺失（假日等），脚本自动跳过，不作为 0 处理。 |
 | 更新后数字全部未变 | 可能遇到周末或美国假日；页面会标注各卡日期，`data_note` 明确“非同一时刻实时行情”。 |
@@ -103,6 +105,6 @@ global-market-dashboard/
 
 ## 7. 许可与限制
 
-- 数据版权归各数据源所有（FRED / CNBC / currency-api / CoinGecko）；本项目仅做个人观察用途的格式化呈现，使用前请确认各源使用条款。
+- **用途与许可**：本项目为**非商业的个人学习与技术研究用途**，不含投资建议，不转售、不再分发原始数据，已按源署名并附免责声明。FRED 为免费分发方，但 `SP500`/`NASDAQ100`/`VIXCLS`/`BAMLH0A0HYM2` 原始版权分别归 S&P DJI、Nasdaq、CBOE、BofA；ICE U.S. Dollar Index 为 ICE 注册商标，经 CNBC 非官方接口转发；CNBC 与 currency-api 无 SLA 或公开分发许可。**若拟公开商用或面向公众服务，须先取得相关指数权利方授权或改用具备公开分发许可的数据源。** 此为工程事实披露，不构成法律意见，机构使用请由法务复核。详见 `AUDIT.md`。
 - 本面板是**解释性**价格信号分类，不是 GDP/衰退预测，不构成任何投资建议。
 - 规格 V1 阈值为未回测的启发式初值，仅用于统一观察口径。
