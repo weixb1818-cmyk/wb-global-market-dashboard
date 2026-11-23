@@ -12,7 +12,7 @@
   git clone https://github.com/weixb1818-cmyk/wb-global-market-dashboard.git
   cd wb-global-market-dashboard
   python3 -m pip install -r requirements.txt
-  python3 -m unittest discover -s tests -v     # 复现全部单元测试（36 项）
+  python3 -m unittest discover -s tests -v     # 复现全部单元测试（43 项）
   ```
 - 四个核心文件免登录直读（`<REF>` 为仓库当前 commit SHA，见仓库首页；亦可用 `main`）：
   - `core.py`：`https://raw.githubusercontent.com/weixb1818-cmyk/wb-global-market-dashboard/main/core.py`
@@ -32,7 +32,7 @@
 
 | 代号 | 名称 | 端点模板 | 认证 | 用途 |
 |---|---|---|---|---|
-| FRED | St. Louis Fed CSV | `https://fred.stlouisfed.org/graph/fredgraph.csv?id={SERIES_ID}` | 无 | 美债收益率、利差、VIX、HY OAS、SP500、NASDAQ100；源端含完整日历史，**本地 `history.json` 仅保留最近 400 期滚动窗口**（`MAX_HISTORY=400`） |
+| FRED | St. Louis Fed CSV | `https://fred.stlouisfed.org/graph/fredgraph.csv?id={SERIES_ID}` | 无 | 美债收益率、利差、VIX、HY OAS、SP500、NASDAQ100；各序列源端起始日不同、历史长度不一（并非所有序列都覆盖同一区间），**本地 `history.json` 仅保留每条序列最近 400 个有效观测**（`MAX_HISTORY=400`） |
 | CNBC | CNBC 公开报价 | `https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols={SYMBOLS}&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json` | 无 | 原生 ICE DXY、股指、COMEX/NYMEX 近月期货、BTC/ETH 现货；当前值与前收盘 |
 | currency-api | 开源汇率经 jsDelivr | `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@{date}/v1/currencies/usd.min.json`；`...@latest/...` | 无 | USD/JPY、USD/CNH 日快照；按日期可回溯约 25 天 |
 | CoinGecko | 官方 API（可选） | `https://api.coingecko.com/api/v3/coins/{coin}/market_chart?vs_currency=usd&days=30&interval=daily` | `COINGECKO_API_KEY`（环境变量，放 GitHub Secrets） | 可选加密历史；默认关闭（`config.json` 中 `enabled=false`） |
@@ -81,7 +81,7 @@
 | 9 | 标普500指数 | FRED `SP500`（指数本身，非 SPY ETF）+ CNBC `.SPX` 补充最新日 | `last` → 点 | `change_pct`；无该字段时按合并序列 `%` 公式 | `last_time` / CSV 日期 |
 | 10 | 纳斯达克100指数 | FRED `NASDAQ100`（**非**纳斯达克综合指数）+ CNBC `.NDX` | 同上 | 同上 | 同上 |
 
-说明：FRED 序列提供完整历史，CNBC 提供更新一日的收盘；`merge_series()` 按日期去重合并后计算，因此"近20期"来自同一指数的连续有效观测，不混入 ETF。
+说明：FRED 各序列提供自其各自起始日以来的历史（序列间长度不一，本地仅截取最近 400 个有效观测），CNBC 提供更新一日的收盘；`merge_series()` 按日期去重合并后计算，因此"近20期"来自同一指数的连续有效观测，不混入 ETF。
 
 ### 2.3 大宗组（3 项，均为近月期货）
 
@@ -148,7 +148,7 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 
 ### 3.5 当前部署的真实状态
 
-截至本次生成，FRED 系指标（历史 400 期）与外汇 USD/JPY、USD/CNH（历史 25 期）已具备 20 期变化；以下 **6 个指标的 20 期变化当前均为空（`—`）**：**DXY、黄金 COMEX、WTI、铜 COMEX、BTC、ETH**——它们的 `history.json` 目前各只有 **1 个观测**，近20期变化依赖脚本每日运行累积（CNBC 免费接口不提供可回溯日线）。因此宏观状态正确显示为"数据不足：暂不判断（缺少 dxy20 等）"。这是规格要求的行为，**不是故障**，也不通过补造历史规避。注意 `change_20` 需要 **21 个有效观测**（当前值 + 倒数第 21 个），即再积累 20 个交易日后才会自动转为正常分类。
+截至本次生成，FRED 系指标（本地保留最近 400 个有效观测，序列起点各异）与外汇 USD/JPY、USD/CNH（历史 25 期）已具备 20 期变化；以下 **6 个指标的 20 期变化当前均为空（`—`）**：**DXY、黄金 COMEX、WTI、铜 COMEX、BTC、ETH**——它们的 `history.json` 目前各只有 **1 个观测**，近20期变化依赖脚本每日运行累积（CNBC 免费接口不提供可回溯日线）。因此宏观状态正确显示为"数据不足：暂不判断（缺少 dxy20 等）"。这是规格要求的行为，**不是故障**，也不通过补造历史规避。注意 `change_20` 需要 **21 个有效观测**（当前值 + 倒数第 21 个），即再积累 20 个交易日后才会自动转为正常分类。
 
 ---
 
@@ -176,12 +176,13 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 | 单源失败 | 保留上一次有效值并标 `stale`，记录 `failed_sources`；不影响其他指标 |
 | **逐指标故障隔离（P1 整改）** | CNBC 每个报价、currency-api 每币种、FRED 每序列**独立记录**成功/失败（`failed_indicators: {ind_id: reason}`）。部分失败时只将对应指标标 `stale` 并沿用上次有效值，其余指标仍为 `ok`；快照新增 `failed_indicators` 字段供核对 |
 | **样本不足 vs 延迟（P2 整改）** | `card_note()` 区分：状态 `stale/missing/error` → "数据暂未更新，截至…"；当前数据正常但 `change_20 is None`（历史样本不足）→ "历史样本不足，等待积累"，不误导为数据源故障 |
+| **CNBC 时间戳边界（终轮 P1）** | `_parse_cnbc_date()` 只接受可真实解析的日期：ISO 用 `date.fromisoformat` 校验（拒绝 `2026-13-45` 等非法日历日），`MM/DD/YY` 用 `strptime` 校验。报价**无时间戳或时间戳非法**时记入 `failed_indicators`、不进入有效报价、沿用上次有效值并标 `stale`；`build_snapshot()` **不再用系统当天日期回填** `as_of`，避免无日期报价被伪装成当日数据污染历史与宏观判断 |
 | 数据损坏 | 原子写入（临时文件 + `os.replace`）；格式校验失败不写快照 |
 | 浏览器端 | 只读取静态 JSON/JS，不暴露任何 API Key，无实时 WebSocket |
 
 ---
 
-## 六、测试覆盖（`tests/test_core.py` + `tests/test_fault_isolation.py`，共 36 项全通过）
+## 六、测试覆盖（`tests/test_core.py` + `tests/test_fault_isolation.py`，共 43 项全通过）
 
 1. 17 指标名称与单位完整且正确；配置中无就业/ISM/CPI 等越界指标
 2. 10Y-2Y 正负 bp 计算；HY OAS 3.20% → 320bp；变化不混淆 `%` 与 `bp`
@@ -198,6 +199,13 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 10. 故障隔离：CNBC 部分报价成功/部分失败时仅失败指标进入 failed；整个源失败时全部指标标记；currency-api 单币种缺失不影响另一币种
 11. 快照构建：failed_indicators 中指标状态为 stale 且保留上次有效值；端到端验证 stale 关键指标阻断宏观分类
 12. 小字区分：当前正常但样本不足显示"历史样本不足，等待积累"；数据过期显示"数据暂未更新，截至…"
+
+**终轮整改（CNBC 时间戳边界，含两项可选）**：
+
+13. 时间戳解析：合法 ISO / `MM/DD/YY` 正确解析；无时间戳、`garbage`、`2026-13-45`、`02/30/26` 等非法值一律返回 `None`
+14. 无/非法时间戳报价进 `failed` 且不在有效 `out` 中；端到端验证 `build_snapshot()` 不回填系统当天日期
+15. （可选）FRED 单序列取数失败只影响该序列，其余序列正常
+16. （可选）宏观 fail-closed：全部关键输入有值但状态 stale 时输出 `insufficient`（missing 项为全部 7 项）
 
 运行方式：`python3 -m unittest discover -s tests -v`
 

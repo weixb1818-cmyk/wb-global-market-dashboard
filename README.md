@@ -27,7 +27,7 @@ python3 scripts/update_data.py                   # 抓取真实数据，生成�
 
 | 指标组 | 数据源 | 取数方式 | 历史 | 说明 |
 |---|---|---|---|---|
-| 2Y / 10Y / 实际收益率 / 10Y-2Y / 10Y-3M / VIX / HY OAS / 标普500 / 纳指100 | **FRED**（St. Louis Fed） | 公开 CSV 端点 `fredgraph.csv?id=...`，无需 Key | 源端完整日历史；本地 `history.json` 保留最近 400 期滚动窗口 | FRED 为免费分发方；利差用 FRED 原始序列，不跨日期相减；部分序列原始版权归 S&P/Nasdaq/CBOE/BofA，见下方许可声明 |
+| 2Y / 10Y / 实际收益率 / 10Y-2Y / 10Y-3M / VIX / HY OAS / 标普500 / 纳指100 | **FRED**（St. Louis Fed） | 公开 CSV 端点 `fredgraph.csv?id=...`，无需 Key | 各序列源端起始日不同、长度不一；本地 `history.json` 仅保留每条序列最近 400 个有效观测 | FRED 为免费分发方；利差用 FRED 原始序列，不跨日期相减；部分序列原始版权归 S&P/Nasdaq/CBOE/BofA，见下方许可声明 |
 | DXY（ICE 美元指数）、标普500、纳指100、COMEX 黄金/WTI 原油/铜**近月期货**、BTC/ETH 现货 | **CNBC** 公开行情页接口 | `restQuote` JSON，无需 Key | 当前值 + 前收盘（可算日变化） | 非官方开发者 API，见下方稳定性说明 |
 | USD/JPY、USD/CNH（**离岸**） | **currency-api** 经 jsDelivr CDN | 按日期的日快照 JSON | 可回溯 25 天 | 非央行官方源，见下方说明 |
 | BTC/ETH（可选） | CoinGecko | 官方 API，Key 放 Secrets | 30 天日线 | 本环境连接超时，默认关闭；启用方法见 2.3 |
@@ -42,6 +42,7 @@ python3 scripts/update_data.py                   # 抓取真实数据，生成�
 - **FRED 无原生 DXY**：`DTWEXBGS` 是贸易加权美元指数，规格明确禁止冒充 DXY，因此**不使用**。DXY 采用 CNBC `.DXY`（ICE U.S. Dollar Index），确认是原生定义。
 - **期货历史**：CNBC 只给当前价与前收盘，不提供免费日线历史；DXY/黄金/WTI/铜的“近20期”变化由脚本每日运行时**自行累积**到 `data/history.json`。样本不足时按规格显示 `—`，宏观判断随之显示“数据不足：暂不判断”，不补造历史。约 20 个交易日后自动生效。
 - **CNBC 接口性质**：它是 CNBC 网页使用的公开报价接口，不是有 SLA 的官方开发者 API。适合个人每日观察；若不稳定，可在 `config.json` 的 `sources.cnbc` 中替换等价端点，页面字段不变。
+- **CNBC 时间戳边界**：报价只有具备可校验的行情日期（`YYYY-MM-DD` 或 `MM/DD/YY`）才被接受；无时间戳或非法日期（如 `2026-13-45`）的报价不计入有效数据，该指标沿用上次有效值并标记 `stale`，宏观判断随之 fail-closed。脚本**不会用系统当天日期回填**缺失的行情日期，以免污染历史与误判时效。
 - **currency-api 性质**：开源项目按日发布汇率快照，经 jsDelivr CDN 分发。它提供 `cnh`（离岸人民币），因此**没有**用 `USD/CNY` 在岸价替代。若需央行级权威源，可在 `sources.currency_api` 适配器内替换，指标定义不变。
 - **黄金/铜/原油单位**：严格按 `USD/oz`、`USD/lb`、`USD/bbl` 展示，且名称标注“近月期货”，不把期货写成现货。
 

@@ -38,6 +38,32 @@ test_failed_indicator_marked_stale (test_fault_isolation.TestBuildSnapshotStatus
 failed_indicators 中的指标状态为 stale，且保留上次有效值。 ... ok
 test_stale_macro_input_blocks_classification (test_fault_isolation.TestBuildSnapshotStatus.test_stale_macro_input_blocks_classification)
 端到端：关键指标 stale 时宏观输出 insufficient（即使有历史值）。 ... ok
+test_illegal_timestamp_quote_is_failed_not_ok (test_fault_isolation.TestCNBCFaultIsolation.test_illegal_timestamp_quote_is_failed_not_ok)
+CNBC 报价时间戳非法（2026-13-45）：进 failed，不进 out。 ... CNBC .DXY 缺少有效行情日期（无时间戳或时间戳非法）
+CNBC 未返回有效报价: sp500 (.SPX)
+CNBC 未返回有效报价: nasdaq100 (.NDX)
+CNBC 未返回有效报价: gold (@GC.1)
+CNBC 未返回有效报价: wti (@CL.1)
+CNBC 未返回有效报价: copper (@HG.1)
+CNBC 未返回有效报价: btc (BTC=)
+CNBC 未返回有效报价: eth (ETH=)
+CNBC 部分报价失败 8/8: btc, copper, dxy, eth, gold, nasdaq100, sp500, wti
+ok
+test_missing_timestamp_quote_is_failed_not_ok (test_fault_isolation.TestCNBCFaultIsolation.test_missing_timestamp_quote_is_failed_not_ok)
+CNBC 报价无 last_time：该指标进 failed，不进 out（不会被当作当天 ok 数据）。 ... CNBC .DXY 缺少有效行情日期（无时间戳或时间戳非法）
+CNBC 未返回有效报价: sp500 (.SPX)
+CNBC 未返回有效报价: nasdaq100 (.NDX)
+CNBC 未返回有效报价: gold (@GC.1)
+CNBC 未返回有效报价: wti (@CL.1)
+CNBC 未返回有效报价: copper (@HG.1)
+CNBC 未返回有效报价: btc (BTC=)
+CNBC 未返回有效报价: eth (ETH=)
+CNBC 部分报价失败 8/8: btc, copper, dxy, eth, gold, nasdaq100, sp500, wti
+ok
+test_parse_cnbc_date_missing_or_illegal (test_fault_isolation.TestCNBCFaultIsolation.test_parse_cnbc_date_missing_or_illegal)
+无时间戳、非法时间戳（含非法日历日）一律返回 None，不回填系统日期。 ... ok
+test_parse_cnbc_date_valid (test_fault_isolation.TestCNBCFaultIsolation.test_parse_cnbc_date_valid)
+合法时间戳：ISO 与 MM/DD/YY 均能解析。 ... ok
 test_partial_quotes_only_failed_marked (test_fault_isolation.TestCNBCFaultIsolation.test_partial_quotes_only_failed_marked)
 部分报价成功、部分失败：成功指标有值，失败指标进入 failed 字典。 ... CNBC 未返回有效报价: sp500 (.SPX)
 CNBC 未返回有效报价: nasdaq100 (.NDX)
@@ -54,8 +80,15 @@ ok
 test_one_pair_missing_does_not_affect_other (test_fault_isolation.TestCurrencyFaultIsolation.test_one_pair_missing_does_not_affect_other)
 某一币种在所有快照中都缺失，只标记该币种，另一币种仍成功。 ... currency-api usdcnh 无有效观测: currency-api: key 'cnh' absent from all snapshots
 ok
+test_one_fred_series_failure_does_not_affect_others (test_fault_isolation.TestFredSeriesIsolation.test_one_fred_series_failure_does_not_affect_others)
+FRED 单序列取数失败：该序列进 failed 标记，其余序列仍正常取到。 ... FRED us2y 抓取失败: simulated FRED failure
+ok
+test_all_stale_inputs_force_insufficient (test_fault_isolation.TestMacroFailClosed.test_all_stale_inputs_force_insufficient)
+所有关键输入有值但状态全为 stale：宏观必须 fail-closed。 ... ok
+test_snapshot_does_not_backfill_system_date (test_fault_isolation.TestNoSystemDateBackfill.test_snapshot_does_not_backfill_system_date)
+端到端：CNBC 报价无 as_of 时，build_snapshot 绝不写入系统当天日期。 ... ok
 
 ----------------------------------------------------------------------
-Ran 36 tests in 0.011s
+Ran 43 tests in 3.510s
 
 OK

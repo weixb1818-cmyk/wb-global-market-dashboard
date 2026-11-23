@@ -140,11 +140,21 @@ def fetch_fred_all(cfg: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
 
 
 def _parse_cnbc_date(raw: Any) -> Optional[str]:
+    """解析 CNBC 行情日期为 YYYY-MM-DD；时间戳缺失或非法时返回 None。
+
+    边界要求（审计 P1）：绝不接受无法校验的日期。ISO 形式必须能被
+    date.fromisoformat 真正解析（拒绝 2026-13-45 之类），否则冒充有效观测会
+    污染历史序列并使过期报价被误判为 ok。
+    """
     if not raw:
         return None
-    s = str(raw)
+    s = str(raw).strip()
+    # ISO 形式：YYYY-MM-DD（可带时间后缀，仅取日期部分并真实校验）
     if len(s) >= 10 and s[4] == "-" and s[7] == "-":
-        return s[:10]
+        try:
+            return dt.date.fromisoformat(s[:10]).isoformat()
+        except ValueError:
+            return None
     # 形如 11/20/26 EST
     try:
         d = dt.datetime.strptime(s.split()[0], "%m/%d/%y").date()
@@ -189,6 +199,12 @@ def fetch_cnbc_all(cfg: Dict[str, Any]) -> tuple:
             failed[ind_id] = "CNBC no valid price"
             continue
         as_of = _parse_cnbc_date(q.get("last_time") or q.get("last_timedate"))
+        if as_of is None:
+            # 审计 P1：没有可校验的行情日期，报价时效无法确认，不得当作有效观测。
+            # 记入 failed 由上层标记 stale 并沿用上次有效值，绝不用系统日期回填。
+            LOG.warning("CNBC %s 缺少有效行情日期（无时间戳或时间戳非法）", symbol)
+            failed[ind_id] = "CNBC quote missing/invalid timestamp"
+            continue
         chg_pct = _num(q.get("change_pct"))
         if chg_pct is None:
             chg = _num(q.get("change"))
@@ -362,9 +378,14 @@ def build_snapshot(cfg: Dict[str, Any], fetched: Dict[str, List[Dict[str, Any]]]
         )
         if ind_id in cnbc and not from_coingecko:
             q = cnbc[ind_id]
-            series.append({"date": q["as_of"] or now_utc.date().isoformat(),
-                           "value": q["value"], "source": q["source"]})
-            provider_change_1 = q["change_1"]
+            # 审计 P1：只用报价自带的真实行情日期；fetch 层已保证无有效日期的
+            # 报价不进入 cnbc。此处不再用系统日期回填，避免把无时间戳报价伪装成
+            # 当天数据、污染历史序列并被误判为 ok。
+            q_as_of = q.get("as_of")
+            if q_as_of:
+                series.append({"date": q_as_of, "value": q["value"],
+                               "source": q["source"]})
+                provider_change_1 = q["change_1"]
             source_label = q["source"]
         elif series:
             source_label = series[-1].get("source", "")
