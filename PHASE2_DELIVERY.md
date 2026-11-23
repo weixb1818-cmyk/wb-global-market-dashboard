@@ -91,4 +91,4 @@
   - `6bbddeb93072c8ff709f8f4cd5972d083e0b5a23`：本阶段主体（研究/代码/测试/数据/文档）
   - `9a5ef91e7d1e498a2221c6e87f08cc66c3560988`：修复 workflow YAML 语法错误（该错误导致首次 push run `45190822884` failure、手动 dispatch 返回 422）
   - `610137102705f97bf2394ccef5f05cb80a4c448e`：补全失败 run 诊断闭环与完整 Actions 证据
-- 最终 commit：`6101371`（main 分支）；修复后手动运行 `45192190028` success。
+- 最终 HEAD 以仓库 main 分支为准（上述为关键里程碑 commit）；修复后手动运行 `45192190028` success。
