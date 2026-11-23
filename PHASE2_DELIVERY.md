@@ -87,4 +87,8 @@
   - 数据：`data/snapshot.json`（含 crosscheck）、`data/provenance.json`、`data/run_log.json`（`data/raw/fred/` 原始响应仅本地留存，不提交）
   - 工作流：`.github/workflows/update.yml`（时间打点 + 溯源文件入库）
   - 证据：`verification/*`（test_run.log、update_run.log、macro_case_study.log、github_actions_runs.json、run_reliability.md）
-- Commit ID：（见交付时确认）
+- Commit ID（按时间顺序）：
+  - `6bbddeb93072c8ff709f8f4cd5972d083e0b5a23`：本阶段主体（研究/代码/测试/数据/文档）
+  - `9a5ef91e7d1e498a2221c6e87f08cc66c3560988`：修复 workflow YAML 语法错误（该错误导致首次 push run `45190822884` failure、手动 dispatch 返回 422）
+  - `610137102705f97bf2394ccef5f05cb80a4c448e`：补全失败 run 诊断闭环与完整 Actions 证据
+- 最终 commit：`6101371`（main 分支）；修复后手动运行 `45192190028` success。
