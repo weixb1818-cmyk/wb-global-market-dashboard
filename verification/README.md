@@ -11,10 +11,12 @@
 
 ## 2. 更新脚本运行日志
 
-- 文件：`update_run.log`
-- 命令：`python3 scripts/update_data.py`
-- 结果：`update_rc=0`，`失败源=[]`，全部真实数据源取数成功。
+- 文件：`update_run.log`（**与当前 `snapshot.json` 同一批次**，run `45166640886` / commit `3863434`）。
+- 命令：`python3 scripts/update_data.py`（由 GitHub Actions 执行）。
+- 结果：`失败源=[]`，全部真实数据源取数成功；`快照已写入 … 宏观状态=insufficient`。
 - 日志逐条记录 FRED 各序列、CNBC 各报价、currency-api 各币种的观测数与数据日期。
+- Actions runner 时区为 UTC，日志时间戳 `11:36:xx` 与快照 `generated_at=20:36:21+09:00` 是同一绝对时刻 `2026-11-23T11:36:21Z`；日志中行情数值（如 `CNBC dxy 103.905`、`gold 3620.8`）与快照逐项吻合。
+- 原始带 GitHub 时间戳的完整步骤日志：`actions_run_45166640886.log`。此前另有一次本地预验证运行（`19:33:35 +08:00 = 11:33:35Z`），属**不同批次**，已被 Actions 批次覆盖，不再作为当前快照的对应日志。
 
 ## 3. 更新后的数据文件
 
@@ -45,16 +47,27 @@
 - 端到端断言 `build_snapshot()` 不把系统当天日期写入历史（`test_snapshot_does_not_backfill_system_date`）。
 - 两项可选测试：`test_one_fred_series_failure_does_not_affect_others`、`test_all_stale_inputs_force_insufficient` 均通过。
 
-## 7. 执行机时钟与日志时间口径核对（终轮收尾）
+## 7. 执行机时钟、日志批次与时间口径核对（终轮收尾）
 
-针对"生成时间晚于审计会话时间"的疑问，实测核对如下（结论：时区标注差异，非时钟错误）：
+审计方指出两点，均属实并已据实处理：
 
-| 项 | 取值 |
-|---|---|
-| 执行机本地时区 | `Asia/Shanghai`（`/etc/timezone`），`date` = `2026-11-23 19:49:30 CST (+0800)` |
-| UTC 基准 | `date -u` = `2026-11-23 11:49:30 UTC`（与本地相差正好 8 小时，时钟无漂移） |
-| `update_run.log` 时间 | `2026-11-23 19:33:35`（logging `%(asctime)s`，本地时区 UTC+8） |
-| `snapshot.json` `generated_at` | `2026-11-23T20:33:35+09:00`（代码固定 Asia/Tokyo，UTC+9） |
-| 换算为 UTC | 两者均为 **`2026-11-23T11:33:35Z`** —— 同一绝对时刻 |
+### 7.1 两份文件原属不同运行批次（已修正日志）
 
-日志与快照仅时区标注不同（+08:00 vs +09:00），字面差 1 小时；若审计会话按 UTC 或其它时区比较会再叠加偏移。各指标 `as_of`（如 CNBC `@ 2026-11-23`、FRED `observation_date`）直接来自数据源，与生成时间戳互相独立，未做任何改动。复核时请以带偏移的绝对时刻或 UTC 比较。
+初核对时误将两次不同运行的产物放在一起比较：
+
+| 文件 | 原取值 | 所属批次 |
+|---|---|---|
+| `update_run.log`（旧） | `19:33:35 +08:00` = `11:33:35Z` | 本地预验证运行（commit `7af5333` 附带） |
+| `snapshot.json`（当前） | `20:36:21 +09:00` = `11:36:21Z` | Actions run `45166640886` / commit `3863434` |
+
+二者相差约 2 分 46 秒，确属**不同运行批次**，不是时钟错误。修正措施：`update_run.log` 已替换为**生成当前快照的同批次** Actions 日志（`11:36:15`–`11:36:21Z`，runner 时区 UTC，=`20:36:15`–`20:36:21+09:00`），日志中 `dxy 103.905` 等行情数值与快照逐项吻合；原始带 GitHub 时间戳的日志存于 `actions_run_45166640886.log`。
+
+### 7.2 时区换算正确，但不以 `date`/`date -u` 冒充 NTP 证据
+
+- 时区换算：`11:36:21Z`（Actions runner，UTC）= `20:36:21+09:00`（快照，Asia/Tokyo）= `19:36:21 +08:00`（本地），均为同一绝对时刻；审计方此前给出的 `11:33:35Z = 20:33:35+09` 换算式同样正确（那是被覆盖的旧批次）。
+- `date` 与 `date -u` 只能证明本机两时区表示一致，**不能独立证明 NTP 同步精度**。本沙箱无 systemd/chrony/ntpq（`timedatectl` 报 "System has not been booted with systemd"，`chronyc`/`ntpq` 未安装），因此**不声称具备独立 NTP 守护进程**。
+- 替代证据（外部时间基准比对，可复现）：本机 `date -u` 与 `curl -sSI https://api.github.com` 响应头 `Date:` 对比，实测为 `12:02:22Z`（本机）对 `12:02:15 GMT`（GitHub），**偏差约 7 秒**。说明执行机时钟由宿主同步、与外部基准基本一致，不存在足以影响"日更新"粒度的漂移。
+
+### 7.3 真实数据日期未受任何影响
+
+各指标 `as_of`（CNBC `@ 2026-11-23`、FRED `observation_date`）直接取自数据源，与上述生成时间戳/日志时间是**互相独立的字段**。本轮只替换了证据日志文件，**未改动任何 `snapshot.json` / `history.json` 的数据值或行情日期**。复核时间相关字段时，请统一换算为 UTC（`Z`）或带偏移绝对时刻比较，勿按字面本地时间直接相减。
