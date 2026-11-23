@@ -42,6 +42,18 @@
       "failed_sources": [],
       "failed_indicators": [],
       "trigger": "manual/local"
+    },
+    {
+      "planned_utc": "2026-11-23T00:15:00+00:00",
+      "started_utc": "2026-11-23T14:15:26+00:00",
+      "finished_utc": "2026-11-23T14:15:32+00:00",
+      "delay_minutes": 840.4,
+      "duration_seconds": 6.1,
+      "status": "ok",
+      "macro_state": "insufficient",
+      "failed_sources": [],
+      "failed_indicators": [],
+      "trigger": "workflow_dispatch"
     }
   ]
 }
