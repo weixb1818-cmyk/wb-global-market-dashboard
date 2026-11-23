@@ -1,0 +1,61 @@
+test_curve_inversion (test_core.TestCardNotes.test_curve_inversion) ... ok
+test_curve_steepen_not_recovery (test_core.TestCardNotes.test_curve_steepen_not_recovery) ... ok
+test_fx_direction_cnh (test_core.TestCardNotes.test_fx_direction_cnh) ... ok
+test_fx_direction_jpy (test_core.TestCardNotes.test_fx_direction_jpy) ... ok
+test_insufficient_history_note (test_core.TestCardNotes.test_insufficient_history_note)
+P2：当前数据正常、历史样本不足，应显示样本不足而非数据延迟。 ... ok
+test_missing_data_note (test_core.TestCardNotes.test_missing_data_note) ... ok
+test_note_length_reasonable (test_core.TestCardNotes.test_note_length_reasonable) ... ok
+test_stale_with_value_shows_data_not_updated (test_core.TestCardNotes.test_stale_with_value_shows_data_not_updated)
+P2：数据过期时，即使有历史变化值也应显示数据暂未更新。 ... ok
+test_vix_note_uses_point_unit (test_core.TestCardNotes.test_vix_note_uses_point_unit) ... ok
+test_all_17_indicators_with_units (test_core.TestIndicators.test_all_17_indicators_with_units) ... ok
+test_no_holiday_ism_cpi_in_config (test_core.TestIndicators.test_no_holiday_ism_cpi_in_config) ... ok
+test_error_and_missing_status_also_rejected (test_core.TestMacroClassification.test_error_and_missing_status_also_rejected)
+P1：error / missing 状态同样视为数据不足。 ... ok
+test_growth_concern (test_core.TestMacroClassification.test_growth_concern) ... ok
+test_high_but_falling_is_not_stress (test_core.TestMacroClassification.test_high_but_falling_is_not_stress) ... ok
+test_missing_key_data (test_core.TestMacroClassification.test_missing_key_data) ... ok
+test_moderate_easing (test_core.TestMacroClassification.test_moderate_easing) ... ok
+test_no_investment_instruction (test_core.TestMacroClassification.test_no_investment_instruction) ... ok
+test_ok_status_allows_classification (test_core.TestMacroClassification.test_ok_status_allows_classification)
+P1：状态显式为 ok 时正常分类（防止过度拒绝）。 ... ok
+test_stale_key_data_with_value_is_rejected (test_core.TestMacroClassification.test_stale_key_data_with_value_is_rejected)
+P1：关键指标有历史数值但状态为 stale，不得据此给出正常分类。 ... ok
+test_stress_beats_easing (test_core.TestMacroClassification.test_stress_beats_easing) ... ok
+test_tightening (test_core.TestMacroClassification.test_tightening) ... ok
+test_crypto_36h (test_core.TestStaleness.test_crypto_36h) ... ok
+test_holidays_exist (test_core.TestStaleness.test_holidays_exist) ... ok
+test_long_gap_is_stale (test_core.TestStaleness.test_long_gap_is_stale) ... ok
+test_weekend_not_stale (test_core.TestStaleness.test_weekend_not_stale) ... ok
+test_10y2y_bp_from_yields (test_core.TestUnitsAndChanges.test_10y2y_bp_from_yields) ... ok
+test_change_20_needs_21_observations (test_core.TestUnitsAndChanges.test_change_20_needs_21_observations) ... ok
+test_display_units_not_confused (test_core.TestUnitsAndChanges.test_display_units_not_confused) ... ok
+test_pct_change (test_core.TestUnitsAndChanges.test_pct_change) ... ok
+test_provider_change_1_preferred (test_core.TestUnitsAndChanges.test_provider_change_1_preferred) ... ok
+test_spread_level_to_bp (test_core.TestUnitsAndChanges.test_spread_level_to_bp) ... ok
+test_failed_indicator_marked_stale (test_fault_isolation.TestBuildSnapshotStatus.test_failed_indicator_marked_stale)
+failed_indicators 中的指标状态为 stale，且保留上次有效值。 ... ok
+test_stale_macro_input_blocks_classification (test_fault_isolation.TestBuildSnapshotStatus.test_stale_macro_input_blocks_classification)
+端到端：关键指标 stale 时宏观输出 insufficient（即使有历史值）。 ... ok
+test_partial_quotes_only_failed_marked (test_fault_isolation.TestCNBCFaultIsolation.test_partial_quotes_only_failed_marked)
+部分报价成功、部分失败：成功指标有值，失败指标进入 failed 字典。 ... CNBC 未返回有效报价: sp500 (.SPX)
+CNBC 未返回有效报价: nasdaq100 (.NDX)
+CNBC 未返回有效报价: gold (@GC.1)
+CNBC 未返回有效报价: wti (@CL.1)
+CNBC 未返回有效报价: copper (@HG.1)
+CNBC 未返回有效报价: btc (BTC=)
+CNBC 未返回有效报价: eth (ETH=)
+CNBC 部分报价失败 7/8: btc, copper, eth, gold, nasdaq100, sp500, wti
+ok
+test_whole_source_failure_marks_all (test_fault_isolation.TestCNBCFaultIsolation.test_whole_source_failure_marks_all)
+整个 CNBC 源失败：所有 CNBC 指标都进入 failed。 ... CNBC 报价抓取失败: network down
+ok
+test_one_pair_missing_does_not_affect_other (test_fault_isolation.TestCurrencyFaultIsolation.test_one_pair_missing_does_not_affect_other)
+某一币种在所有快照中都缺失，只标记该币种，另一币种仍成功。 ... currency-api usdcnh 无有效观测: currency-api: key 'cnh' absent from all snapshots
+ok
+
+----------------------------------------------------------------------
+Ran 36 tests in 0.011s
+
+OK
