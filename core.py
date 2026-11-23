@@ -193,13 +193,23 @@ REQUIRED_MACRO_KEYS = (
 
 
 def classify_macro(inputs: Dict[str, Optional[float]],
-                   config: Dict[str, Any]) -> Dict[str, Any]:
+                   config: Dict[str, Any],
+                   statuses: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
     """
     按规格 5.3 顺序匹配，只输出一个主状态。
-    任一关键 20 期数据缺失 -> 数据不足：暂不判断（不复用昨日结论）。
+    任一关键输入缺失、或状态为 stale/missing/error -> 数据不足：暂不判断。
+    statuses 的键与 inputs 一致（如 dxy20/hyNow）；状态非 'ok' 的值一律不参与判断，
+    即使其数值非空（防止用过期历史变化值给出正常分类）。不复用昨日结论。
     """
     t = config["macro_thresholds"]
-    missing = [k for k in REQUIRED_MACRO_KEYS if inputs.get(k) is None]
+    statuses = statuses or {}
+    bad_states = {"stale", "missing", "error"}
+    missing = []
+    for k in REQUIRED_MACRO_KEYS:
+        if inputs.get(k) is None:
+            missing.append(k)
+        elif statuses.get(k) in bad_states:
+            missing.append(k)
     if missing:
         return {
             "state": "insufficient",
@@ -287,10 +297,16 @@ def _n(s: str) -> str:
 
 def card_note(ind_id: str, change_20: Optional[float], config: Dict[str, Any],
               status: str = "ok", as_of: Optional[str] = None,
-              aux: Optional[Dict[str, Any]] = None) -> str:
-    if status in ("missing", "stale", "error") or change_20 is None:
+              aux: Optional[Dict[str, Any]] = None,
+              observations: Optional[int] = None) -> str:
+    # P2 整改：区分「数据延迟/失败」与「当前正常但历史样本不足」。
+    # - 数据本身失败或过期 -> 数据暂未更新（附带数据日期）
+    # - 当前值正常、仅近20期样本不足 -> 历史样本不足，等待积累（不暗示数据源故障）
+    if status in ("missing", "stale", "error"):
         date_part = as_of or "未知日期"
         return _n(f"数据暂未更新，截至{date_part}")
+    if change_20 is None:
+        return "历史样本不足，等待积累"
 
     t = config["note_thresholds"]
     c = float(change_20)
