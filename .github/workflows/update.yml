@@ -2,7 +2,7 @@ name: 每日更新市场快照
 
 on:
   schedule:
-    # UTC 00:15 ≈ 东京时间 09:15；GitHub 调度可能延迟数分钟
+    # UTC 00:15 = 北京时间 08:15（审计要求）；GitHub 免费调度可能延迟数分钟，非 SLA
     - cron: '15 0 * * *'
   workflow_dispatch:
 
@@ -33,16 +33,26 @@ jobs:
       - name: 运行单元测试
         run: python3 -m unittest discover -s tests -v
 
+      - name: 记录调度时刻
+        run: |
+          echo "计划时间: UTC 00:15 = 北京时间 08:15"
+          echo "实际启动(UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          echo "触发事件: ${{ github.event_name }}"
+
       - name: 抓取数据并生成快照
         env:
           COINGECKO_API_KEY: ${{ secrets.COINGECKO_API_KEY }}
         run: python3 scripts/update_data.py
 
+      - name: 记录完成时刻
+        run: echo "实际完成(UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
       - name: 提交数据变更
         run: |
           git config user.name "daily-snapshot-bot"
           git config user.email "daily-snapshot-bot@users.noreply.github.com"
-          git add data/snapshot.json data/snapshot.js data/history.json
+          git add data/snapshot.json data/snapshot.js data/history.json \
+                 data/provenance.json data/run_log.json
           if git diff --cached --quiet; then
             echo "数据无变化，跳过提交"
           else

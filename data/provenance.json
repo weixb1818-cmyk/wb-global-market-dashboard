@@ -1,0 +1,392 @@
+{
+  "records": [
+    {
+      "source": "FRED",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS2",
+      "fetched_at_utc": "2026-11-23T14:04:27+00:00",
+      "http_status": 200,
+      "sha256": "a9ca99df4f60e4d129396323f9c84e7a356478dcb3dc9568e0789cfaf6ba0819",
+      "bytes": 209644,
+      "redistributable": true,
+      "raw_ref": "data/raw/fred/DGS2.csv（仅本地，未提交）"
+    },
+    {
+      "source": "FRED",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS10",
+      "fetched_at_utc": "2026-11-23T14:04:30+00:00",
+      "http_status": 200,
+      "sha256": "078cf9534a352af6007ae9e93cd7beb94b2616d57bc469e8e895ba19a322ccce",
+      "bytes": 269471,
+      "redistributable": true,
+      "raw_ref": "data/raw/fred/DGS10.csv（仅本地，未提交）"
+    },
+    {
+      "source": "FRED",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DFII10",
+      "fetched_at_utc": "2026-11-23T14:04:32+00:00",
+      "http_status": 200,
+      "sha256": "6f96017732b2c7f15899839a0ce9c8e05e0007517d1ca160dcc890bf8e64505e",
+      "bytes": 99651,
+      "redistributable": true,
+      "raw_ref": "data/raw/fred/DFII10.csv（仅本地，未提交）"
+    },
+    {
+      "source": "FRED",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y2Y",
+      "fetched_at_utc": "2026-11-23T14:04:36+00:00",
+      "http_status": 200,
+      "sha256": "00aeefcd36ff7fe6cc989644a4fdacf45318485cffae61c4a30a009d48d61102",
+      "bytes": 210561,
+      "redistributable": true,
+      "raw_ref": "data/raw/fred/T10Y2Y.csv（仅本地，未提交）"
+    },
+    {
+      "source": "FRED",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=T10Y3M",
+      "fetched_at_utc": "2026-11-23T14:04:47+00:00",
+      "http_status": 200,
+      "sha256": "3fc7c0e14cbb3ec8bbb95d5e1f58845c22fead34b6c57b79e64ba7c772dbb91f",
+      "bytes": 186669,
+      "redistributable": true,
+      "raw_ref": "data/raw/fred/T10Y3M.csv（仅本地，未提交）"
+    },
+    {
+      "source": "FRED",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=VIXCLS",
+      "fetched_at_utc": "2026-11-23T14:04:51+00:00",
+      "http_status": 200,
+      "sha256": "5fdb14015c8fee857f1aae7ea54d799fe8e2eebc1b4dcab047cc7ac70e3a78a0",
+      "bytes": 162037,
+      "redistributable": true,
+      "raw_ref": "data/raw/fred/VIXCLS.csv（仅本地，未提交）"
+    },
+    {
+      "source": "FRED",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=BAMLH0A0HYM2",
+      "fetched_at_utc": "2026-11-23T14:04:52+00:00",
+      "http_status": 200,
+      "sha256": "bc168c032a4ee7fea9f80c6f834f505e79626c05aefe3b6d0101de7922019a5b",
+      "bytes": 12702,
+      "redistributable": true,
+      "raw_ref": "data/raw/fred/BAMLH0A0HYM2.csv（仅本地，未提交）"
+    },
+    {
+      "source": "FRED",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=SP500",
+      "fetched_at_utc": "2026-11-23T14:04:55+00:00",
+      "http_status": 200,
+      "sha256": "956d4a10a289d499f89029d6f7fb72cf5d48ca709c414e71a52f0a2076f82242",
+      "bytes": 48922,
+      "redistributable": true,
+      "raw_ref": "data/raw/fred/SP500.csv（仅本地，未提交）"
+    },
+    {
+      "source": "FRED",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=NASDAQ100",
+      "fetched_at_utc": "2026-11-23T14:04:59+00:00",
+      "http_status": 200,
+      "sha256": "033526816e9a81cad361fab04f2e0462ccfd8e99438fcbc50c9876b18774b590",
+      "bytes": 209007,
+      "redistributable": true,
+      "raw_ref": "data/raw/fred/NASDAQ100.csv（仅本地，未提交）"
+    },
+    {
+      "source": "FRED",
+      "url": "https://fred.stlouisfed.org/graph/fredgraph.csv?id=DGS3MO",
+      "fetched_at_utc": "2026-11-23T14:05:04+00:00",
+      "http_status": 200,
+      "sha256": "67198750a4744d78e7582c401235dedce814cb639ab2799ba2ab68574441cba1",
+      "bytes": 187195,
+      "redistributable": true,
+      "raw_ref": "data/raw/fred/DGS3MO.csv（仅本地，未提交）"
+    },
+    {
+      "source": "CNBC",
+      "url": "https://quote.cnbc.com/quote-html-webservice/restQuote/symbolType/symbol?symbols=.DXY%7C.SPX%7C.NDX%7C%40GC.1%7C%40CL.1%7C%40HG.1%7CBTC%3D%7CETH%3D&requestMethod=itv&noform=1&partnerId=2&fund=1&exthrs=1&output=json",
+      "fetched_at_utc": "2026-11-23T14:05:05+00:00",
+      "http_status": 200,
+      "sha256": "d5775ba48787146f934b9de3226732591447445bb8a44dc75e025594559f94db",
+      "bytes": 6961,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-20/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:06+00:00",
+      "http_status": 200,
+      "sha256": "26cfdaaf529939f24ef6a09b06cace37d84fa1cc262a64505fdd7a6f1b4ea7bc",
+      "bytes": 6141,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-16/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:06+00:00",
+      "http_status": 200,
+      "sha256": "62843464cd7e0de8f0386eb3a3507993bd1aed402a99696d76ff1b7c8305ff93",
+      "bytes": 6135,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-22/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:06+00:00",
+      "http_status": 200,
+      "sha256": "659a81a1ad3113552244d2a9b0427c8295a9a7a208bff434f511973bf50e331a",
+      "bytes": 6150,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-21/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:07+00:00",
+      "http_status": 200,
+      "sha256": "22a8fe06ed65bbd6f5eb3c7c4fe9a0fb9b1cd1fac518a582a5663ed891a321c9",
+      "bytes": 6144,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-15/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:07+00:00",
+      "http_status": 200,
+      "sha256": "e61c4ce8f444274b4051e5c9282372b9a7c80e921c22a3a3441781a3f8b606c3",
+      "bytes": 6107,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-13/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:07+00:00",
+      "http_status": 200,
+      "sha256": "5bba4fa3d486b520177c3614bc1b6e09440b9cd9ef05e2b46fbb3b296c4c4889",
+      "bytes": 6121,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-14/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:07+00:00",
+      "http_status": 200,
+      "sha256": "866750b1f9fcac01d0e53dff49a187a9170c2f193d037389a8b8f8ee16ab8760",
+      "bytes": 6113,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-23/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:07+00:00",
+      "http_status": 200,
+      "sha256": "39313f4f56f2cec337e034b702db2727d193b05608fed3a8e83bd24e4a277960",
+      "bytes": 6142,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-10/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:07+00:00",
+      "http_status": 200,
+      "sha256": "96868cfa519cbd6ca34a58b19d10de80613a3cac24822985bda342900e1a6d66",
+      "bytes": 6146,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-19/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:07+00:00",
+      "http_status": 200,
+      "sha256": "8590f13b03b7f077333f30b4178f44c6b3d46588d6754203422e3b7e23de1d2d",
+      "bytes": 6138,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-17/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:08+00:00",
+      "http_status": 200,
+      "sha256": "5c80fe5bab172920ce4dd3c5f9189f5933099ab2983092b5a43eb7187f8d8d43",
+      "bytes": 6136,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-12/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:08+00:00",
+      "http_status": 200,
+      "sha256": "fd3711574516a068b757b70f4f2bc8950d675970d33a30fc3030d076168a8f4e",
+      "bytes": 6139,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-08/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:08+00:00",
+      "http_status": 200,
+      "sha256": "39db84661a41b65003cec95ce470c09fc5f502655130010008f9a595d27e55df",
+      "bytes": 6149,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-11/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:08+00:00",
+      "http_status": 200,
+      "sha256": "181c646fdbb0e9dc0ea2be220211106660291212261cc6e17bea0975ccfd086b",
+      "bytes": 6129,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-05/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:08+00:00",
+      "http_status": 200,
+      "sha256": "413d5256cb6c4f0634dcb25284cb145cb37038891ab8aa80c1d4917f03db6341",
+      "bytes": 6142,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-04/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:09+00:00",
+      "http_status": 200,
+      "sha256": "220b0beee10d65e40d8cb5d74a9f137ef26af57abbd7f845add72b85fbc774fa",
+      "bytes": 6105,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-06/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:09+00:00",
+      "http_status": 200,
+      "sha256": "eef7419a47412450cb67dd7cb8e1f6af2e30dcf56325b21ab3db0b2d994313c4",
+      "bytes": 6121,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-07/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:09+00:00",
+      "http_status": 200,
+      "sha256": "8a6f2021032a3fbfa04d0ca4442919432d31b0863223e647fd9ffcfcbb8d15b1",
+      "bytes": 6144,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-10-31/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:09+00:00",
+      "http_status": 200,
+      "sha256": "d9313a9807e360091bcad79e6ab44191f529ac597c492d0a4731d04fb11ffc8d",
+      "bytes": 6108,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-03/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:10+00:00",
+      "http_status": 200,
+      "sha256": "f0c8a61dcd3403ef1e524c087a383ada5077382b7c45202f4bd7f0ec653ac2c1",
+      "bytes": 6146,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-18/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:10+00:00",
+      "http_status": 200,
+      "sha256": "7f6faa5889058131911f984412315a47ba9e19be959a235b235ef58a0fc8c3af",
+      "bytes": 6148,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-09/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:10+00:00",
+      "http_status": 200,
+      "sha256": "ab8d683117423d1bf5b64fd30e64154b41d9a1bdfc76747e268f2127fb585a24",
+      "bytes": 6134,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-02/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:10+00:00",
+      "http_status": 200,
+      "sha256": "971a3dd899d633d8bf19659a7999c3d9b530935277088ea462ceb1ee16fe7cc8",
+      "bytes": 6134,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-11-01/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:11+00:00",
+      "http_status": 200,
+      "sha256": "5aa6a11a818f7080ada67c7eda9bf91d8cf2240b569ef610317279d89682ba2a",
+      "bytes": 6131,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@2026-10-30/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:11+00:00",
+      "http_status": 200,
+      "sha256": "a91061fa8c127acb195eb60829076c05a66a8331546901006f2200ad6ecd41dd",
+      "bytes": 6122,
+      "redistributable": false,
+      "raw_ref": null
+    },
+    {
+      "source": "currency-api",
+      "url": "https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json",
+      "fetched_at_utc": "2026-11-23T14:05:12+00:00",
+      "http_status": 200,
+      "sha256": "659a81a1ad3113552244d2a9b0427c8295a9a7a208bff434f511973bf50e331a",
+      "bytes": 6150,
+      "redistributable": false,
+      "raw_ref": null
+    }
+  ],
+  "summary": {
+    "FRED": {
+      "requests": 10,
+      "ok": 10,
+      "fail": 0
+    },
+    "CNBC": {
+      "requests": 1,
+      "ok": 1,
+      "fail": 0
+    },
+    "currency-api": {
+      "requests": 26,
+      "ok": 26,
+      "fail": 0
+    }
+  },
+  "note": "sha256 为原始响应体哈希；仅 redistributable=true 的源保存原文，其余只存元数据"
+}

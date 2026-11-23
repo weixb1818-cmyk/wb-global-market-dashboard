@@ -1,0 +1,47 @@
+{
+  "schedule": {
+    "cron": "15 0 * * *",
+    "cron_timezone": "UTC",
+    "planned_local": "北京时间 08:15（= UTC 00:15 = 东京 09:15）",
+    "note": "GitHub Actions 免费调度无法保证严格准点；延迟数分钟属正常，不承诺 SLA"
+  },
+  "note": "仅记录真实发生的执行；GitHub 免费调度延迟数分钟属正常，非 SLA 违约",
+  "runs": [
+    {
+      "planned_utc": "2026-11-23T00:15:00+00:00",
+      "started_utc": "2026-11-23T13:53:51+00:00",
+      "finished_utc": "2026-11-23T13:54:41+00:00",
+      "delay_minutes": 818.9,
+      "duration_seconds": 50.4,
+      "status": "ok",
+      "macro_state": "insufficient",
+      "failed_sources": [],
+      "failed_indicators": [],
+      "trigger": "manual/local"
+    },
+    {
+      "planned_utc": "2026-11-23T00:15:00+00:00",
+      "started_utc": "2026-11-23T13:57:30+00:00",
+      "finished_utc": "2026-11-23T13:58:24+00:00",
+      "delay_minutes": 822.5,
+      "duration_seconds": 53.6,
+      "status": "ok",
+      "macro_state": "insufficient",
+      "failed_sources": [],
+      "failed_indicators": [],
+      "trigger": "manual/local"
+    },
+    {
+      "planned_utc": "2026-11-23T00:15:00+00:00",
+      "started_utc": "2026-11-23T14:04:24+00:00",
+      "finished_utc": "2026-11-23T14:05:12+00:00",
+      "delay_minutes": 829.4,
+      "duration_seconds": 48.0,
+      "status": "ok",
+      "macro_state": "insufficient",
+      "failed_sources": [],
+      "failed_indicators": [],
+      "trigger": "manual/local"
+    }
+  ]
+}

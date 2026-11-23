@@ -1,1 +1,9 @@
-requests>=2.31,<3
+# 精确锁定依赖版本，保证审计可复现（P2）
+# 生成环境：Python 3.11.1；实测 pip freeze 于 2026-11-23
+requests==2.32.5
+
+# 传递依赖（pip freeze 实测版本）
+certifi==2026.10.23
+charset-normalizer==3.4.4
+idna==3.11
+urllib3==2.6.3

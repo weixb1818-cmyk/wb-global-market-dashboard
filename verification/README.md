@@ -2,16 +2,19 @@
 
 本目录保存第二轮整改后的实际运行证据，均可对照源码复现。
 
+> **下一阶段质量提升补充**：本阶段为验证新增的利差交叉验证、审计溯源、运行记录功能，已在**本地**再次运行 `python3 scripts/update_data.py`，因此当前 `data/snapshot.json`、`verification/update_run.log`、`data/provenance.json`、`data/run_log.json` 属于**本地新批次**（`generated_at` 见快照，run_log 中 `trigger=manual/local`）。下文第 2 节描述的 `45166640886` 批次及其原始日志 `actions_run_45166640886.log` 仍是**真实历史记录，予以保留**，但不再对应当前快照。这是如实披露的批次演进，非数据造假。下一阶段完整交付见 `PHASE2_DELIVERY.md`。
+
 ## 1. 单元测试完整结果
 
 - 文件：`test_run.log`
 - 命令：`python3 -m unittest discover -s tests -v`
-- 结果：**Ran 43 tests ... OK**（原 36 项 + 终轮整改新增 7 项）
+- 结果：**Ran 65 tests ... OK**（原 43 项 + 下一阶段质量提升新增 22 项）
 - 新增项涵盖：CNBC 合法/无/非法时间戳解析、无/非法时间戳报价进 failed、端到端不回填系统日期，以及两项可选测试（FRED 单序列失败隔离、宏观全 stale fail-closed）。
+- 下一阶段新增 22 项：利差同日交叉验证（7）、21 观测达标（5）、审计溯源（5）、运行记录（5）。
 
 ## 2. 更新脚本运行日志
 
-- 文件：`update_run.log`（**与当前 `snapshot.json` 同一批次**，run `45166640886` / commit `3863434`）。
+- 文件：`update_run.log`（历史记录：曾与 `snapshot.json` 同一批次，run `45166640886` / commit `3863434`；下一阶段起已被本地批次覆盖，见顶部补充说明）。
 - 命令：`python3 scripts/update_data.py`（由 GitHub Actions 执行）。
 - 结果：`失败源=[]`，全部真实数据源取数成功；`快照已写入 … 宏观状态=insufficient`。
 - 日志逐条记录 FRED 各序列、CNBC 各报价、currency-api 各币种的观测数与数据日期。

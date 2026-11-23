@@ -1,6 +1,17 @@
 {
   "version": "1.0",
   "timezone": "Asia/Tokyo",
+  "schedule": {
+    "cron": "15 0 * * *",
+    "cron_timezone": "UTC",
+    "planned_local": "北京时间 08:15（= UTC 00:15 = 东京 09:15）",
+    "note": "GitHub Actions 免费调度无法保证严格准点；延迟数分钟属正常，不承诺 SLA"
+  },
+  "run_log": {
+    "path": "data/run_log.json",
+    "keep_last": 60,
+    "note": "追加式运行记录：计划时间、实际启动/完成时间、延迟、失败源；用于连续运行审计"
+  },
   "change_window": 20,
   "macro_thresholds": {
     "dxy20_strong_pct": 1.0,
@@ -15,6 +26,10 @@
     "vix_high": 25,
     "twoyear20_down_bp": -25,
     "twoyear20_up_bp": 25
+  },
+  "crosscheck": {
+    "spread_alert_bp": 2.0,
+    "note": "官方利差与同日收益率之差的可接受偏差；超过则告警，同日数据不齐时标记无法核验"
   },
   "note_thresholds": {
     "dxy_significant_pct": 1.0,

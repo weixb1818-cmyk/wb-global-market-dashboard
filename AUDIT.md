@@ -1,5 +1,7 @@
 # 审计文档：全球市场每日观察面板（P0 / V1.0）
 
+> **下一阶段质量提升交付见 [`PHASE2_DELIVERY.md`](PHASE2_DELIVERY.md)**：免费历史源可行性研究（`research/history_feasibility.md`）、商品合约口径（`research/commodity_contracts.md`）、利差同日交叉验证（快照 `crosscheck` 字段）、宏观规则无前视案例复盘（`research/macro_case_study.md`）、运行可靠性与审计溯源（`verification/run_reliability.md`、`data/provenance.json`）。测试已增至 65 项。
+
 > 本文供第三方逐项核对：**每个指标的数据源、字段、单位、计算口径、时间戳与缺失处理**。
 > 所有实现均可在同目录源码中核对：`core.py`（纯逻辑）、`scripts/update_data.py`（取数与生成）、`config.json`（阈值与源映射）、`tests/test_core.py`（验收测试）。
 > 审计基准版本：`config.json` 的 `version = 1.0`；快照生成时区 `Asia/Tokyo (UTC+9)`。
@@ -12,7 +14,7 @@
   git clone https://github.com/weixb1818-cmyk/wb-global-market-dashboard.git
   cd wb-global-market-dashboard
   python3 -m pip install -r requirements.txt
-  python3 -m unittest discover -s tests -v     # 复现全部单元测试（43 项）
+  python3 -m unittest discover -s tests -v     # 复现全部单元测试（65 项）
   ```
 - 四个核心文件免登录直读（`<REF>` 为仓库当前 commit SHA，见仓库首页；亦可用 `main`）：
   - `core.py`：`https://raw.githubusercontent.com/weixb1818-cmyk/wb-global-market-dashboard/main/core.py`
@@ -192,7 +194,7 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 
 ---
 
-## 六、测试覆盖（`tests/test_core.py` + `tests/test_fault_isolation.py`，共 43 项全通过）
+## 六、测试覆盖（`tests/` 下 5 个测试文件，共 65 项全通过）
 
 1. 17 指标名称与单位完整且正确；配置中无就业/ISM/CPI 等越界指标
 2. 10Y-2Y 正负 bp 计算；HY OAS 3.20% → 320bp；变化不混淆 `%` 与 `bp`
@@ -217,7 +219,14 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 15. （可选）FRED 单序列取数失败只影响该序列，其余序列正常
 16. （可选）宏观 fail-closed：全部关键输入有值但状态 stale 时输出 `insufficient`（missing 项为全部 7 项）
 
-运行方式：`python3 -m unittest discover -s tests -v`
+**下一阶段质量提升新增（`test_crosscheck.py` / `test_history_threshold.py` / `test_provenance.py` / `test_run_log.py`，共 22 项）**：
+
+17. 利差同日交叉验证：一致（0bp）/ 超 2bp 告警 / 边界值 / 日期错位不可核验 / 单腿缺失 / 真实 FRED 值 / 取最近共同日
+18. 21 观测达标：恰好第 21 点 `change_20` 从 `null` 转有效、宏观从 `insufficient` 转正常、不足 21 点不近似、不沿用旧结论
+19. 审计溯源：sha256 确定性、不可再分发源不内联原文、失败请求记录、按源汇总、不同正文不同哈希
+20. 运行记录：计划/启动/完成时间、延迟（含负值）、失败状态检测（ok/partial/fail）、追加与上限、不预填历史
+
+运行方式：`python3 -m unittest discover -s tests -v`（当前 65 项全通过，见 `verification/test_run.log`）
 
 ---
 

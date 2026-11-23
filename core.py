@@ -43,6 +43,61 @@ def diff_point(current: float, previous: float) -> float:
     return current - previous
 
 
+def crosscheck_spread(derived: Sequence[Dict[str, Any]],
+                      leg_a: Sequence[Dict[str, Any]],
+                      leg_b: Sequence[Dict[str, Any]],
+                      threshold_bp: float) -> Dict[str, Any]:
+    """
+    官方利差序列与同日两条收益率之差的一致性交叉验证（P1）。
+
+    - derived：官方利差序列（FRED T10Y2Y / T10Y3M），单位为百分数（0.28 表示 28bp）。
+    - leg_a / leg_b：构成该利差的两条收益率序列（如 DGS10 与 DGS2 / DGS3MO）。
+    - 只比较**同日**观测；任一序列在该日缺失则跳过，绝不跨日期强行相减。
+    - 差额 = (官方利差 − (腿A − 腿B)) × 100，单位 bp；|差额| > threshold_bp 记为 alert。
+
+    返回字段：
+      status: ok（一致）/ alert（超阈值）/ unverifiable（无同日可比数据）
+      date / derived_bp / computed_bp / diff_bp / threshold_bp / reason
+    """
+    def index_of(series: Sequence[Dict[str, Any]]) -> Dict[str, float]:
+        idx: Dict[str, float] = {}
+        for o in series or []:
+            if not o:
+                continue
+            d, v = o.get("date"), o.get("value")
+            if d and v is not None:
+                idx[str(d)] = float(v)
+        return idx
+
+    di, ai, bi = index_of(derived), index_of(leg_a), index_of(leg_b)
+    common = sorted(set(di) & set(ai) & set(bi))
+    if not common:
+        return {
+            "status": "unverifiable", "date": None,
+            "derived_bp": None, "computed_bp": None, "diff_bp": None,
+            "threshold_bp": threshold_bp,
+            "reason": "同日数据不齐，无法核验（不跨日期计算）",
+        }
+    day = common[-1]
+    derived_bp = (di[day] - (ai[day] - bi[day])) * 100.0
+    computed_bp = (ai[day] - bi[day]) * 100.0
+    official_bp = di[day] * 100.0
+    diff_bp = derived_bp
+    if abs(diff_bp) < 1e-9:  # 规范化浮点负零，避免 -0.0 显示
+        diff_bp = 0.0
+    alert = abs(diff_bp) > threshold_bp
+    return {
+        "status": "alert" if alert else "ok",
+        "date": day,
+        "derived_bp": round(official_bp, 4),
+        "computed_bp": round(computed_bp, 4),
+        "diff_bp": round(diff_bp, 4),
+        "threshold_bp": threshold_bp,
+        "reason": ("同日差异超过告警阈值" if alert
+                   else "同日一致（在阈值内）"),
+    }
+
+
 def _change_for_kind(current: float, previous: float, kind: str) -> float:
     if kind in ("yield", "spread"):
         return diff_bp(current, previous)

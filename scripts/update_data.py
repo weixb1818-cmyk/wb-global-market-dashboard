@@ -28,16 +28,37 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from core import (  # noqa: E402
-    card_note, classify_macro, compute_changes, fmt_change, fmt_value,
-    is_stale, load_config, to_bp,
+    card_note, classify_macro, compute_changes, crosscheck_spread, fmt_change,
+    fmt_value, is_stale, load_config, to_bp,
 )
+from provenance import make_record, summarize  # noqa: E402
 
 LOG = logging.getLogger("dashboard.update")
 DATA_DIR = ROOT / "data"
 SNAPSHOT_PATH = DATA_DIR / "snapshot.json"
 SNAPSHOT_JS_PATH = DATA_DIR / "snapshot.js"
 HISTORY_PATH = DATA_DIR / "history.json"
+PROVENANCE_PATH = DATA_DIR / "provenance.json"
+RAW_FRED_DIR = DATA_DIR / "raw" / "fred"
+RUN_LOG_PATH = DATA_DIR / "run_log.json"
 MAX_HISTORY = 400
+
+# 审计溯源：每次 http_text 请求追加一条记录（P2）
+PROVENANCE: list = []
+
+
+def _source_of(url: str) -> str:
+    if "fredgraph" in url or "fred.stlouisfed.org" in url:
+        return "FRED"
+    if "quote.cnbc.com" in url or "cnbc" in url:
+        return "CNBC"
+    if "jsdelivr" in url or "currency-api" in url:
+        return "currency-api"
+    if "coingecko" in url:
+        return "CoinGecko"
+    if "macrofinance" in url:
+        return "macrofinance"
+    return "other"
 
 
 # --------------------------------------------------------------------------
@@ -62,12 +83,35 @@ def http_text(url: str, cfg: Dict[str, Any], params: Optional[dict] = None,
                 session.headers.update(headers)
             r = session.get(url, params=params, timeout=timeout)
             r.raise_for_status()
+            # 审计溯源：记录真实请求的完整 URL、日期(UTC)、状态、响应 sha256。
+            source = _source_of(url)
+            full_url = r.url
+            fetched_at = dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds")
+            rec = make_record(source, full_url, r.status_code, r.text, fetched_at,
+                              redistributable=(source == "FRED"))
+            if source == "FRED" and params and params.get("id"):
+                # 原始响应仅本地留存供审计核对；data/raw/ 已加入 .gitignore，
+                # 不提交公开仓库（再分发授权未明确，遵守审计要求）。
+                RAW_FRED_DIR.mkdir(parents=True, exist_ok=True)
+                raw_path = RAW_FRED_DIR / f"{params['id']}.csv"
+                raw_path.write_text(r.text, encoding="utf-8")
+                rec["raw_ref"] = str(raw_path.relative_to(ROOT)) + "（仅本地，未提交）"
+            PROVENANCE.append(rec)
             return r.text
         except Exception as exc:  # noqa: BLE001 - 记录后重试
             last_exc = exc
             if attempt < retries:
                 LOG.warning("请求失败，%s 秒后重试 %s: %s", 1 + attempt, url, exc)
                 time.sleep(1 + attempt)
+    # 全部重试失败也记录一条，便于审计发现失败请求
+    try:
+        source = _source_of(url)
+        rec = make_record(source, url, None, None,
+                          dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"))
+        rec["error"] = str(last_exc)[:300]
+        PROVENANCE.append(rec)
+    except Exception:  # noqa: BLE001
+        pass
     raise RuntimeError(f"请求失败 {url}: {last_exc}")
 
 
@@ -351,6 +395,27 @@ def _status_for(as_of: Optional[str], kind: str, cfg: Dict[str, Any],
     return "ok"
 
 
+def build_crosscheck(cfg: Dict[str, Any],
+                     fetched: Dict[str, List[Dict[str, Any]]]) -> Dict[str, Any]:
+    """
+    构建利差交叉验证区块（P1）。
+
+    FRED series 映射：t10y2y=T10Y2Y, t10y3m=T10Y3M, us2y=DGS2,
+    us10y=DGS10, dgs3mo=DGS3MO。crosscheck_spread 只比较同日观测，
+    任一序列该日缺失即跳过；无可比日则 status=unverifiable。
+    """
+    threshold = float(cfg.get("crosscheck", {}).get("spread_alert_bp", 2.0))
+    return {
+        "t10y2y_vs_dgs10_dgs2": crosscheck_spread(
+            fetched.get("t10y2y", []), fetched.get("us10y", []),
+            fetched.get("us2y", []), threshold),
+        "t10y3m_vs_dgs10_dgs3mo": crosscheck_spread(
+            fetched.get("t10y3m", []), fetched.get("us10y", []),
+            fetched.get("dgs3mo", []), threshold),
+        "note": "官方利差与同日收益率之差的比对；仅同日可比，超阈值告警，不跨日期强行计算",
+    }
+
+
 def build_snapshot(cfg: Dict[str, Any], fetched: Dict[str, List[Dict[str, Any]]],
                    cnbc: Dict[str, Dict[str, Any]], failed_sources: List[str],
                    old_history: Dict[str, Any], old_snapshot: Dict[str, Any],
@@ -489,6 +554,10 @@ def build_snapshot(cfg: Dict[str, Any], fetched: Dict[str, List[Dict[str, Any]]]
     }
     macro = classify_macro(macro_inputs, cfg, macro_statuses)
 
+    # 美债利差同日交叉验证（P1）：官方 T10Y2Y/T10Y3M 与同日两条收益率之差比对。
+    # 只用同日观测，缺失即标记无法核验；阈值来自 config.crosscheck.spread_alert_bp。
+    crosscheck = build_crosscheck(cfg, fetched)
+
     snapshot = {
         "version": cfg["version"],
         "generated_at": generated_at,
@@ -496,6 +565,7 @@ def build_snapshot(cfg: Dict[str, Any], fetched: Dict[str, List[Dict[str, Any]]]
         "data_note": "本页数据截至各卡标注日期，非同一时刻实时行情",
         "change_window": cfg["change_window"],
         "macro": macro,
+        "crosscheck": crosscheck,
         "indicators": indicators,
         "failed_sources": failed_sources,
         "failed_indicators": failed_indicators,
@@ -531,11 +601,53 @@ def load_json_safe(path: Path) -> Dict[str, Any]:
         return {}
 
 
+def append_run_log(cfg: Dict[str, Any], started_utc: dt.datetime,
+                   finished_utc: dt.datetime, failed_sources: List[str],
+                   failed_indicators: Dict[str, str], macro_state: str) -> Dict[str, Any]:
+    """
+    追加式运行记录（P2）：计划时间、实际启动/完成、延迟分钟、状态与失败源。
+    - 计划时间取当天 UTC 00:15（config.schedule.cron），与北京时间 08:15 对应。
+    - 延迟 = 实际启动 − 计划时间（分钟）；负数表示提前（如手动触发）。
+    - 保留最近 keep_last 条，防止文件无限增长。
+    - 不伪造历史运行：仅记录本次真实执行。
+    """
+    planned = started_utc.replace(hour=0, minute=15, second=0, microsecond=0)
+    delay_min = round((started_utc - planned).total_seconds() / 60.0, 1)
+    status = "ok" if not failed_sources and not failed_indicators else (
+        "partial" if not failed_sources else "fail")
+    record = {
+        "planned_utc": planned.isoformat(timespec="seconds"),
+        "started_utc": started_utc.isoformat(timespec="seconds"),
+        "finished_utc": finished_utc.isoformat(timespec="seconds"),
+        "delay_minutes": delay_min,
+        "duration_seconds": round((finished_utc - started_utc).total_seconds(), 1),
+        "status": status,
+        "macro_state": macro_state,
+        "failed_sources": list(failed_sources),
+        "failed_indicators": sorted(failed_indicators),
+        "trigger": os.environ.get("GITHUB_EVENT_NAME", "manual/local"),
+    }
+    old = load_json_safe(RUN_LOG_PATH) if RUN_LOG_PATH.exists() else {}
+    runs = old.get("runs", []) if isinstance(old.get("runs"), list) else []
+    runs.append(record)
+    keep = int(cfg.get("run_log", {}).get("keep_last", 60))
+    runs = runs[-keep:]
+    payload = {
+        "schedule": cfg.get("schedule", {}),
+        "note": "仅记录真实发生的执行；GitHub 免费调度延迟数分钟属正常，非 SLA 违约",
+        "runs": runs,
+    }
+    _atomically_write(RUN_LOG_PATH, json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
+    return record
+
+
 def main() -> int:
+    started_utc = dt.datetime.now(dt.timezone.utc)
     logging.basicConfig(level=logging.INFO,
                         format="%(asctime)s %(levelname)s %(message)s")
     cfg = load_config()
     DATA_DIR.mkdir(parents=True, exist_ok=True)
+    PROVENANCE.clear()  # 每轮重建溯源清单
 
     old_snapshot = load_json_safe(SNAPSHOT_PATH)
     old_history = load_json_safe(HISTORY_PATH)
@@ -591,8 +703,22 @@ def main() -> int:
     _atomically_write(HISTORY_PATH,
                       json.dumps(history, ensure_ascii=False, indent=2) + "\n")
 
+    # 持久化审计溯源清单（P2）
+    manifest = summarize(PROVENANCE)
+    _atomically_write(PROVENANCE_PATH,
+                      json.dumps(manifest, ensure_ascii=False, indent=2) + "\n")
+    LOG.info("溯源清单已写入 %s（%d 条请求记录）", PROVENANCE_PATH, len(PROVENANCE))
+
     LOG.info("快照已写入 %s；宏观状态=%s；失败源=%s",
              SNAPSHOT_PATH, snapshot["macro"]["state"], snapshot["failed_sources"])
+
+    # 追加式运行记录（P2）：计划/启动/完成时间、延迟、状态、失败源
+    finished_utc = dt.datetime.now(dt.timezone.utc)
+    run_rec = append_run_log(cfg, started_utc, finished_utc, failed_sources,
+                             failed_indicators, snapshot["macro"]["state"])
+    LOG.info("运行记录已追加：启动=%s 完成=%s 延迟=%.1f分钟 状态=%s",
+             run_rec["started_utc"], run_rec["finished_utc"],
+             run_rec["delay_minutes"], run_rec["status"])
     return 0
 
 
