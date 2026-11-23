@@ -153,11 +153,16 @@ def _parse_cnbc_date(raw: Any) -> Optional[str]:
         return None
 
 
-def fetch_cnbc_all(cfg: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
-    """CNBC 公开报价：当前值、前收盘、日变化百分比、数据日期。"""
+def fetch_cnbc_all(cfg: Dict[str, Any]) -> tuple:
+    """
+    CNBC 公开报价：当前值、前收盘、日变化百分比、数据日期。
+    返回 (out, failed)：out 仅含成功报价；failed 是按 ind_id 记录的失败原因字典。
+    逐报价独立判定——部分报价失败不影响其余指标，便于上层只标记对应指标为 stale。
+    """
     src = cfg["sources"]["cnbc"]
     sym_map = src["symbols"]
     out: Dict[str, Dict[str, Any]] = {}
+    failed: Dict[str, str] = {}
     try:
         data = http_json(src["base_url"], cfg, params={
             "symbols": "|".join(sym_map.values()),
@@ -165,19 +170,23 @@ def fetch_cnbc_all(cfg: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
             "fund": "1", "exthrs": "1", "output": "json",
         }, ua=src.get("user_agent"))
         quotes = data["FormattedQuoteResult"]["FormattedQuote"]
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:  # noqa: BLE001 - 整个源失败：所有 CNBC 指标都记为失败
         LOG.error("CNBC 报价抓取失败: %s", exc)
-        return out
+        for ind_id in sym_map:
+            failed[ind_id] = f"CNBC source error: {exc}"
+        return out, failed
 
     by_symbol = {q.get("symbol"): q for q in quotes}
     for ind_id, symbol in sym_map.items():
         q = by_symbol.get(symbol)
         if not q or q.get("code") not in (0, "0", None):
             LOG.warning("CNBC 未返回有效报价: %s (%s)", ind_id, symbol)
+            failed[ind_id] = "CNBC quote missing/invalid"
             continue
         value = _num(q.get("last"))
         if value is None:
             LOG.warning("CNBC %s 无有效价格", symbol)
+            failed[ind_id] = "CNBC no valid price"
             continue
         as_of = _parse_cnbc_date(q.get("last_time") or q.get("last_timedate"))
         chg_pct = _num(q.get("change_pct"))
@@ -194,7 +203,10 @@ def fetch_cnbc_all(cfg: Dict[str, Any]) -> Dict[str, Dict[str, Any]]:
             "previous_close": _num(q.get("previous_day_closing")),
         }
         LOG.info("CNBC %s 取得 %s @ %s", ind_id, value, as_of)
-    return out
+    if failed:
+        LOG.warning("CNBC 部分报价失败 %d/%d: %s", len(failed), len(sym_map),
+                    ", ".join(sorted(failed)))
+    return out, failed
 
 
 def pct_from_change(change: Optional[float], previous: Optional[float]) -> Optional[float]:
@@ -203,12 +215,17 @@ def pct_from_change(change: Optional[float], previous: Optional[float]) -> Optio
     return change / previous * 100.0
 
 
-def fetch_currency_api(cfg: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
-    """按日期取 USD/JPY、USD/CNH 日快照，构造真实历史序列。"""
+def fetch_currency_api(cfg: Dict[str, Any]) -> tuple:
+    """
+    按日期取 USD/JPY、USD/CNH 日快照，构造真实历史序列。
+    返回 (out, failed)：out 按币种索引观测；failed 按币种记录完全取不到有效值的失败。
+    单个日期请求失败不影响其它日期；单个币种缺失不影响另一币种。
+    """
     src = cfg["sources"]["currency_api"]
     pairs = src["pairs"]
     days = int(src["history_days"])
     out: Dict[str, List[Dict[str, Any]]] = {k: [] for k in pairs}
+    failed: Dict[str, str] = {}
     today = dt.date.today()
 
     dates = [(today - dt.timedelta(days=i)).isoformat() for i in range(days)]
@@ -218,6 +235,7 @@ def fetch_currency_api(cfg: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
         return date_str, http_json(url, cfg)
 
     results: Dict[str, dict] = {}
+    date_failures = 0
     with ThreadPoolExecutor(max_workers=8) as pool:
         futures = {pool.submit(one, d): d for d in dates}
         for fut in as_completed(futures):
@@ -226,13 +244,16 @@ def fetch_currency_api(cfg: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
                 if isinstance(payload, dict) and isinstance(payload.get("usd"), dict):
                     results[date_str] = payload
             except Exception as exc:  # noqa: BLE001
+                date_failures += 1
                 LOG.debug("currency-api %s 不可用: %s", futures[fut], exc)
 
     # latest 作为当日快照补充（其 date 字段可能比本地今天更新）
+    latest_ok = False
     try:
         latest = http_json(src["latest_url"], cfg)
         if isinstance(latest.get("usd"), dict):
             results[str(latest.get("date") or today.isoformat())] = latest
+            latest_ok = True
     except Exception as exc:  # noqa: BLE001
         LOG.warning("currency-api latest 失败: %s", exc)
 
@@ -244,9 +265,21 @@ def fetch_currency_api(cfg: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
                 continue
             out[ind_id].append({"date": date_str, "value": value,
                                 "source": "currency-api/jsDelivr"})
-    for ind_id, obs in out.items():
-        LOG.info("currency-api %s 取得 %d 个有效观测", ind_id, len(obs))
-    return out
+
+    # 逐币种判定失败：完全取不到有效观测的币种单独标记，不影响另一币种
+    for ind_id, key in pairs.items():
+        if not out[ind_id]:
+            reason = "currency-api: all dated snapshots unavailable"
+            if latest_ok:
+                reason = f"currency-api: key '{key}' absent from all snapshots"
+            failed[ind_id] = reason
+            LOG.warning("currency-api %s 无有效观测: %s", ind_id, reason)
+        else:
+            LOG.info("currency-api %s 取得 %d 个有效观测", ind_id, len(out[ind_id]))
+    if date_failures:
+        LOG.warning("currency-api 有 %d/%d 个日期快照请求失败（已按可用日期继续）",
+                    date_failures, len(dates))
+    return out, failed
 
 
 def fetch_coingecko(cfg: Dict[str, Any]) -> Dict[str, List[Dict[str, Any]]]:
@@ -304,13 +337,15 @@ def _status_for(as_of: Optional[str], kind: str, cfg: Dict[str, Any],
 
 def build_snapshot(cfg: Dict[str, Any], fetched: Dict[str, List[Dict[str, Any]]],
                    cnbc: Dict[str, Dict[str, Any]], failed_sources: List[str],
-                   old_history: Dict[str, Any], old_snapshot: Dict[str, Any]) -> tuple:
+                   old_history: Dict[str, Any], old_snapshot: Dict[str, Any],
+                   failed_indicators: Optional[Dict[str, str]] = None) -> tuple:
     now_utc = dt.datetime.now(dt.timezone.utc)
     tz = dt.timezone(dt.timedelta(hours=9))  # Asia/Tokyo 固定偏移 JST
     generated_at = now_utc.astimezone(tz).isoformat(timespec="seconds")
 
     old_series = old_history.get("series", {}) if isinstance(old_history, dict) else {}
     prev_indicators = old_snapshot.get("indicators", {}) if isinstance(old_snapshot, dict) else {}
+    failed_indicators = failed_indicators or {}
 
     indicators: Dict[str, Any] = {}
     new_history: Dict[str, Any] = {}
@@ -337,9 +372,14 @@ def build_snapshot(cfg: Dict[str, Any], fetched: Dict[str, List[Dict[str, Any]]]
         merged = merge_series(old_series.get(ind_id, []), series)
         new_history[ind_id] = merged
 
-        source_failed = any(
+        # 逐指标故障隔离：优先按该指标自身的失败记录判定；
+        # 若无逐指标记录，回退到源级判定（兼容旧调用方）。
+        source_failed = ind_id in failed_indicators or any(
             s in failed_sources and _source_owns(s, ind_id, cfg) for s in failed_sources
         )
+        if ind_id in failed_indicators:
+            LOG.info("指标 %s 本轮取数失败，标记为 stale: %s",
+                     ind_id, failed_indicators[ind_id])
         calc = compute_changes(merged, kind, cfg["change_window"], provider_change_1)
         as_of = calc["as_of"]
         status = _status_for(as_of, kind, cfg, source_failed)
@@ -375,7 +415,8 @@ def build_snapshot(cfg: Dict[str, Any], fetched: Dict[str, List[Dict[str, Any]]]
             if three_m and us10 and three_m[-1]["date"] == us10[-1]["date"]:
                 aux["dgs3mo_bp"] = to_bp(three_m[-1]["value"])
 
-        note = card_note(ind_id, calc["change_20"], cfg, status, as_of, aux)
+        note = card_note(ind_id, calc["change_20"], cfg, status, as_of, aux,
+                         observations=calc["observations"])
         display_value = (fmt_value(value, meta["display"],
                                    signed=meta.get("signed_level", True))
                          if value is not None else "—")
@@ -399,8 +440,13 @@ def build_snapshot(cfg: Dict[str, Any], fetched: Dict[str, List[Dict[str, Any]]]
         }
 
     # 宏观状态输入（规格 5.1）
+    # 每个输入同时携带其来源指标的状态：任一关键指标 stale/missing/error 时，
+    # 即使数值非空也不得用于宏观分类（P1 整改：排除过期数据）。
     def cv(ind_id: str, field: str) -> Optional[float]:
         return indicators.get(ind_id, {}).get(field)
+
+    def cs(ind_id: str) -> str:
+        return indicators.get(ind_id, {}).get("status", "missing")
 
     macro_inputs = {
         "dxy20": cv("dxy", "change_20"),
@@ -411,7 +457,16 @@ def build_snapshot(cfg: Dict[str, Any], fetched: Dict[str, List[Dict[str, Any]]]
         "hyNow": cv("hy_oas", "value"),
         "vixNow": cv("vix", "value"),
     }
-    macro = classify_macro(macro_inputs, cfg)
+    macro_statuses = {
+        "dxy20": cs("dxy"),
+        "real20bp": cs("us10y_real"),
+        "twoYear20bp": cs("us2y"),
+        "hy20bp": cs("hy_oas"),
+        "vix20pt": cs("vix"),
+        "hyNow": cs("hy_oas"),
+        "vixNow": cs("vix"),
+    }
+    macro = classify_macro(macro_inputs, cfg, macro_statuses)
 
     snapshot = {
         "version": cfg["version"],
@@ -422,6 +477,7 @@ def build_snapshot(cfg: Dict[str, Any], fetched: Dict[str, List[Dict[str, Any]]]
         "macro": macro,
         "indicators": indicators,
         "failed_sources": failed_sources,
+        "failed_indicators": failed_indicators,
         "source_terms": {
             "fred": cfg["sources"]["fred"]["license"],
             "cnbc": cfg["sources"]["cnbc"]["license"],
@@ -464,26 +520,34 @@ def main() -> int:
     old_history = load_json_safe(HISTORY_PATH)
 
     failed_sources: List[str] = []
+    failed_indicators: Dict[str, str] = {}
     fetched_raw: Dict[str, List[Dict[str, Any]]] = {}
 
     try:
         fred = fetch_fred_all(cfg)
-        for ind_id in cfg["sources"]["fred"]["series"]:
-            if ind_id in fred:
-                fetched_raw[ind_id] = fred[ind_id]
-            else:
-                failed_sources.append("FRED")
     except Exception as exc:  # noqa: BLE001
         LOG.error("FRED 整体失败: %s", exc)
+        fred = {}
+        failed_sources.append("FRED")
+    for ind_id in cfg["sources"]["fred"]["series"]:
+        if ind_id in fred and fred[ind_id]:
+            fetched_raw[ind_id] = fred[ind_id]
+        else:
+            # FRED 单序列失败：只标记该指标，不影响其它 FRED 指标（故障隔离）
+            failed_indicators[ind_id] = "FRED series unavailable"
+            LOG.warning("FRED 序列 %s 无有效数据，单独标记失败", ind_id)
+    if not fred:
         failed_sources.append("FRED")
 
-    cnbc = fetch_cnbc_all(cfg)
+    cnbc, cnbc_failed = fetch_cnbc_all(cfg)
+    failed_indicators.update(cnbc_failed)
     if not cnbc:
         failed_sources.append("CNBC")
 
-    fx = fetch_currency_api(cfg)
+    fx, fx_failed = fetch_currency_api(cfg)
     for ind_id, obs in fx.items():
         fetched_raw[ind_id] = obs
+    failed_indicators.update(fx_failed)
     if not any(fx.values()):
         failed_sources.append("currency-api")
 
@@ -491,10 +555,12 @@ def main() -> int:
     for ind_id, obs in cg.items():
         if obs:
             fetched_raw[ind_id] = obs  # CoinGecko 启用时覆盖，作为可选主源
+            # CoinGecko 成功补位时，清除该指标先前由 CNBC 记录的失败
+            failed_indicators.pop(ind_id, None)
 
     snapshot, history = build_snapshot(
         cfg, fetched_raw, cnbc, list(dict.fromkeys(failed_sources)),
-        old_history, old_snapshot,
+        old_history, old_snapshot, failed_indicators,
     )
 
     payload = json.dumps(snapshot, ensure_ascii=False, indent=2)
