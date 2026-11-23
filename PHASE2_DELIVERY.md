@@ -49,7 +49,7 @@
 - 计划时间北京时间 08:15（cron UTC 00:15），workflow 记录计划/启动/完成时刻。
 - `data/run_log.json` 追加式记录延迟、时长、状态、失败源；失败/漏跑可逐日核对。
 - 修复 workflow 遗漏：溯源文件纳入每日 `git add`。
-- **真实记录**：4 次 Actions 运行（11-22、11-23 两天，2 定时 + 2 手动，全 success），固化于 `verification/github_actions_runs.json`。
+- **真实记录**：6 次 Actions 运行（11-22、11-23 两天；5 success + 1 failure），固化于 `verification/github_actions_runs.json`。其中 failure（`45190822884`）为本阶段首次提交触发、因 workflow YAML 语法错误在解析阶段失败，已修复并以 `45192190028` success 闭环；详见 `verification/run_reliability.md`。当前快照与该 success run 同批次，日志见 `verification/update_run.log`（原始步骤日志 `actions_run_45192190028.log`）。
 - **边界**：运行时长不足 10 个自然日，无法提供 10 日记录，不伪造；给出累积机制。
 
 ## 六、P2 审计复现
@@ -86,7 +86,7 @@
   - 测试：`tests/test_crosscheck.py`、`test_history_threshold.py`、`test_provenance.py`、`test_run_log.py`（共 65 项）
   - 数据：`data/snapshot.json`（含 crosscheck）、`data/provenance.json`、`data/run_log.json`（`data/raw/fred/` 原始响应仅本地留存，不提交）
   - 工作流：`.github/workflows/update.yml`（时间打点 + 溯源文件入库）
-  - 证据：`verification/*`（test_run.log、update_run.log、macro_case_study.log、github_actions_runs.json、run_reliability.md）
+  - 证据：`verification/*`（test_run.log、update_run.log、actions_run_45192190028.log、macro_case_study.log、github_actions_runs.json、run_reliability.md）
 - Commit ID（按时间顺序）：
   - `6bbddeb93072c8ff709f8f4cd5972d083e0b5a23`：本阶段主体（研究/代码/测试/数据/文档）
   - `9a5ef91e7d1e498a2221c6e87f08cc66c3560988`：修复 workflow YAML 语法错误（该错误导致首次 push run `45190822884` failure、手动 dispatch 返回 422）

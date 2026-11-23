@@ -2,7 +2,7 @@
 
 本目录保存第二轮整改后的实际运行证据，均可对照源码复现。
 
-> **下一阶段质量提升补充**：本阶段为验证新增的利差交叉验证、审计溯源、运行记录功能，已在**本地**再次运行 `python3 scripts/update_data.py`，因此当前 `data/snapshot.json`、`verification/update_run.log`、`data/provenance.json`、`data/run_log.json` 属于**本地新批次**（`generated_at` 见快照，run_log 中 `trigger=manual/local`）。下文第 2 节描述的 `45166640886` 批次及其原始日志 `actions_run_45166640886.log` 仍是**真实历史记录，予以保留**，但不再对应当前快照。这是如实披露的批次演进，非数据造假。下一阶段完整交付见 `PHASE2_DELIVERY.md`。
+> **批次对齐说明（下一阶段终态）**：当前 `data/snapshot.json`（`generated_at=2026-11-23T23:15:32+09:00`）、`verification/update_run.log`、`data/provenance.json`、`data/run_log.json` 同属 **Actions run `45192190028`**（`workflow_dispatch` / head commit `9a5ef91`，机器人自动提交 `022fb6df`）**一次运行**，日志与快照六项行情数值已程序逐项核对吻合。更早的 `45166640886` 批次及其原始日志 `actions_run_45166640886.log` 仍为**真实历史记录，予以保留**，但不再对应当前快照。这是如实披露的批次演进，非数据造假。下一阶段完整交付见 `PHASE2_DELIVERY.md`。
 
 ## 1. 单元测试完整结果
 
@@ -14,12 +14,12 @@
 
 ## 2. 更新脚本运行日志
 
-- 文件：`update_run.log`（历史记录：曾与 `snapshot.json` 同一批次，run `45166640886` / commit `3863434`；下一阶段起已被本地批次覆盖，见顶部补充说明）。
+- 文件：`update_run.log`（**与当前 `snapshot.json` 同一批次**，run `45192190028` / 机器人提交 `022fb6df`；见顶部批次对齐说明）。
 - 命令：`python3 scripts/update_data.py`（由 GitHub Actions 执行）。
 - 结果：`失败源=[]`，全部真实数据源取数成功；`快照已写入 … 宏观状态=insufficient`。
 - 日志逐条记录 FRED 各序列、CNBC 各报价、currency-api 各币种的观测数与数据日期。
-- Actions runner 时区为 UTC，日志时间戳 `11:36:xx` 与快照 `generated_at=20:36:21+09:00` 是同一绝对时刻 `2026-11-23T11:36:21Z`；日志中行情数值（如 `CNBC dxy 103.905`、`gold 3620.8`）与快照逐项吻合。
-- 原始带 GitHub 时间戳的完整步骤日志：`actions_run_45166640886.log`。此前另有一次本地预验证运行（`19:33:35 +08:00 = 11:33:35Z`），属**不同批次**，已被 Actions 批次覆盖，不再作为当前快照的对应日志。
+- Actions runner 时区为 UTC，日志时间戳 `14:15:xx` 与快照 `generated_at=23:15:32+09:00` 是同一绝对时刻 `2026-11-23T14:15:32Z`；日志中行情数值（`CNBC dxy 104.097`、`gold 3656.5`、`wti 82.13`、`copper 5.6265`、`btc 63341.2`、`eth 1800.42`）与快照逐项吻合。
+- 原始带 GitHub UTC 时间戳的完整步骤日志：`actions_run_45192190028.log`。历史批次 `actions_run_45166640886.log` 及更早的本地预验证运行（`19:33:35 +08:00 = 11:33:35Z`）均为**不同批次**，如实保留、不作当前快照的对应日志。
 
 ## 3. 更新后的数据文件
 
@@ -55,6 +55,8 @@
 审计方指出两点，均属实并已据实处理：
 
 ### 7.1 两份文件原属不同运行批次（已修正日志）
+
+> 本节为**审计第 4 轮当时的历史复盘**，表中"当前"均指该时点；下一阶段之后的批次演进见本文档顶部"批次对齐说明"，当前快照对应的日志为 `update_run.log` / run `45192190028`。
 
 初核对时误将两次不同运行的产物放在一起比较：
 
