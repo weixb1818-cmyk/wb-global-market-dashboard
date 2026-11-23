@@ -115,6 +115,30 @@ class TestMacroClassification(unittest.TestCase):
         self.assertIn("dxy20", r["missing"])
         self.assertIn("暂不判断", r["headline"])
 
+    def test_stale_key_data_with_value_is_rejected(self):
+        """P1：关键指标有历史数值但状态为 stale，不得据此给出正常分类。"""
+        r = classify_macro(
+            macro_inputs(dxy20=1.5, real20bp=20), CFG,
+            statuses={"dxy20": "stale"},
+        )
+        self.assertEqual(r["state"], "insufficient")
+        self.assertIn("dxy20", r["missing"])
+        self.assertIn("暂不判断", r["headline"])
+
+    def test_error_and_missing_status_also_rejected(self):
+        """P1：error / missing 状态同样视为数据不足。"""
+        r = classify_macro(macro_inputs(), CFG,
+                           statuses={"hy20bp": "error", "vixNow": "missing"})
+        self.assertEqual(r["state"], "insufficient")
+        self.assertIn("hy20bp", r["missing"])
+        self.assertIn("vixNow", r["missing"])
+
+    def test_ok_status_allows_classification(self):
+        """P1：状态显式为 ok 时正常分类（防止过度拒绝）。"""
+        r = classify_macro(macro_inputs(dxy20=1.5, real20bp=20), CFG,
+                           statuses={k: "ok" for k in macro_inputs()})
+        self.assertEqual(r["state"], "tightening")
+
     def test_no_investment_instruction(self):
         for kw in ("买入", "做多", "做空", "必涨", "衰退已至"):
             for kwargs in ({}, {"dxy20": 2, "real20bp": 20},
@@ -150,6 +174,20 @@ class TestCardNotes(unittest.TestCase):
         self.assertIn("数据暂未更新", note)
         self.assertIn("2026-11-14", note)
         self.assertNotIn("上升", note)
+
+    def test_insufficient_history_note(self):
+        """P2：当前数据正常、历史样本不足，应显示样本不足而非数据延迟。"""
+        for ind_id in ("dxy", "gold", "wti", "copper", "btc", "eth"):
+            note = card_note(ind_id, None, CFG, status="ok",
+                             as_of="2026-11-20", observations=1)
+            self.assertIn("历史样本不足", note, (ind_id, note))
+            self.assertNotIn("数据暂未更新", note, (ind_id, note))
+
+    def test_stale_with_value_shows_data_not_updated(self):
+        """P2：数据过期时，即使有历史变化值也应显示数据暂未更新。"""
+        note = card_note("dxy", 2.0, CFG, status="stale", as_of="2026-11-01")
+        self.assertIn("数据暂未更新", note)
+        self.assertIn("2026-11-01", note)
 
     def test_vix_note_uses_point_unit(self):
         self.assertIn("风险偏好降温", card_note("vix", 4, CFG))
