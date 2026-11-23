@@ -6,19 +6,20 @@
 
 ## 公开源码仓库（供第三方 clone / 本地复现测试）
 
-- 仓库分支：`weixb1818-cmyk/global-market-monitor` 的 **`audit-p0-v1`** 分支（与仓库 main 分支的另一实现版本隔离，未覆盖任何现有代码）。
+- 独立公开仓库：**`weixb1818-cmyk/wb-global-market-dashboard`**（main 分支）。此前临时使用的 `global-market-monitor/audit-p0-v1` 分支已删除，不再使用。
 - Clone：
   ```bash
-  git clone -b audit-p0-v1 https://github.com/weixb1818-cmyk/global-market-monitor.git
-  cd global-market-monitor
+  git clone https://github.com/weixb1818-cmyk/wb-global-market-dashboard.git
+  cd wb-global-market-dashboard
   python3 -m pip install -r requirements.txt
-  python3 -m unittest discover -s tests -v     # 复现 26 项测试
+  python3 -m unittest discover -s tests -v     # 复现全部单元测试（36 项）
   ```
-- 四个核心文件免登录直读：
-  - `core.py`：`https://raw.githubusercontent.com/weixb1818-cmyk/global-market-monitor/audit-p0-v1/core.py`
-  - `config.json`：`https://raw.githubusercontent.com/weixb1818-cmyk/global-market-monitor/audit-p0-v1/config.json`
-  - `scripts/update_data.py`：`https://raw.githubusercontent.com/weixb1818-cmyk/global-market-monitor/audit-p0-v1/scripts/update_data.py`
-  - `tests/test_core.py`：`https://raw.githubusercontent.com/weixb1818-cmyk/global-market-monitor/audit-p0-v1/tests/test_core.py`
+- 四个核心文件免登录直读（`<REF>` 为仓库当前 commit SHA，见仓库首页；亦可用 `main`）：
+  - `core.py`：`https://raw.githubusercontent.com/weixb1818-cmyk/wb-global-market-dashboard/main/core.py`
+  - `config.json`：`https://raw.githubusercontent.com/weixb1818-cmyk/wb-global-market-dashboard/main/config.json`
+  - `scripts/update_data.py`：`https://raw.githubusercontent.com/weixb1818-cmyk/wb-global-market-dashboard/main/scripts/update_data.py`
+  - `tests/test_core.py`：`https://raw.githubusercontent.com/weixb1818-cmyk/wb-global-market-dashboard/main/tests/test_core.py`
+  - 故障隔离测试：`.../main/tests/test_fault_isolation.py`
 - 在线审计页：托管地址形如 `https://<host>/audit.html?sharecode=<访问码>`（访问码由发布方通过分享链接单独提供，不在源码仓库中硬编码；从带 sharecode 的入口进入后，站内源码链接会自动透传凭据）。
 
 ## 数据用途与许可声明（回应审计反馈）
@@ -140,6 +141,7 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 ### 3.4 强制约束
 
 - 上述 7 个输入中**任一关键 20 期数据缺失或超期** → 输出 `数据不足：暂不判断`，并列出缺失项；**不沿用昨日结论**。
+- **P1 整改**：宏观输入同时携带来源指标的 `status`（`build_snapshot` 中的 `macro_statuses`）。`classify_macro(inputs, config, statuses)` 对任一关键输入检查：值为 `None`，**或状态为 `stale`/`missing`/`error`，均视为缺失**。因此即使某指标保留了上次的历史变化数值，只要其状态过期，也不会据此给出正常宏观分类。`status=ok` 才允许参与判断。
 - 高位但大幅回落不判为"扩散"（规则 1 要求 20 期同时上行）。
 - 顶部结构为"状态 + 为什么 + 不确定因素"。
 - 禁止输出买入/卖出/做多/做空/必涨等投资指令；倒挂恢复不得写成"经济复苏"。
@@ -172,12 +174,14 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 | 普通指标延迟 | `expected_trading_days_between(as_of, today) > 2` 标 `stale`（含美国主要假日与周末判断） |
 | 周末/美国假日 | 正常休市不虚报故障；页面标注各卡日期与"非同一时刻实时行情" |
 | 单源失败 | 保留上一次有效值并标 `stale`，记录 `failed_sources`；不影响其他指标 |
+| **逐指标故障隔离（P1 整改）** | CNBC 每个报价、currency-api 每币种、FRED 每序列**独立记录**成功/失败（`failed_indicators: {ind_id: reason}`）。部分失败时只将对应指标标 `stale` 并沿用上次有效值，其余指标仍为 `ok`；快照新增 `failed_indicators` 字段供核对 |
+| **样本不足 vs 延迟（P2 整改）** | `card_note()` 区分：状态 `stale/missing/error` → "数据暂未更新，截至…"；当前数据正常但 `change_20 is None`（历史样本不足）→ "历史样本不足，等待积累"，不误导为数据源故障 |
 | 数据损坏 | 原子写入（临时文件 + `os.replace`）；格式校验失败不写快照 |
 | 浏览器端 | 只读取静态 JSON/JS，不暴露任何 API Key，无实时 WebSocket |
 
 ---
 
-## 六、测试覆盖（`tests/test_core.py`，26 项全通过）
+## 六、测试覆盖（`tests/test_core.py` + `tests/test_fault_isolation.py`，共 36 项全通过）
 
 1. 17 指标名称与单位完整且正确；配置中无就业/ISM/CPI 等越界指标
 2. 10Y-2Y 正负 bp 计算；HY OAS 3.20% → 320bp；变化不混淆 `%` 与 `bp`
@@ -187,6 +191,13 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 6. 近20期需 21 个观测；日变化优先用源自带值
 7. 周末不误报、`>2` 交易日与加密 36 小时阈值、假日表存在
 8. 小字长度上限 45 字；缺失数据文案含日期且无方向词
+
+**第二轮整改新增（P1/P2）**：
+
+9. 宏观分类：关键指标**有数值但状态为 stale/error/missing** 时输出"数据不足：暂不判断"；状态 ok 时正常分类
+10. 故障隔离：CNBC 部分报价成功/部分失败时仅失败指标进入 failed；整个源失败时全部指标标记；currency-api 单币种缺失不影响另一币种
+11. 快照构建：failed_indicators 中指标状态为 stale 且保留上次有效值；端到端验证 stale 关键指标阻断宏观分类
+12. 小字区分：当前正常但样本不足显示"历史样本不足，等待积累"；数据过期显示"数据暂未更新，截至…"
 
 运行方式：`python3 -m unittest discover -s tests -v`
 
