@@ -1,11 +1,16 @@
 {
   "version": "1.0",
-  "updated_at": "2026-11-22T15:43:49+09:00",
+  "updated_at": "2026-11-23T16:33:02+09:00",
   "series": {
     "dxy": [
       {
         "date": "2026-11-20",
         "value": 103.84,
+        "source": "CNBC:.DXY"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 103.61,
         "source": "CNBC:.DXY"
       }
     ],
@@ -18032,6 +18037,11 @@
         "date": "2026-11-21",
         "value": 3539.0,
         "source": "CNBC:@GC.1"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 3633.9,
+        "source": "CNBC:@GC.1"
       }
     ],
     "wti": [
@@ -18039,12 +18049,22 @@
         "date": "2026-11-21",
         "value": 83.62,
         "source": "CNBC:@CL.1"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 82.97,
+        "source": "CNBC:@CL.1"
       }
     ],
     "copper": [
       {
         "date": "2026-11-21",
         "value": 5.465,
+        "source": "CNBC:@HG.1"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 5.5365,
         "source": "CNBC:@HG.1"
       }
     ],
@@ -18058,6 +18078,11 @@
         "date": "2026-11-22",
         "value": 59064.21,
         "source": "CNBC:BTC="
+      },
+      {
+        "date": "2026-11-23",
+        "value": 61411.05,
+        "source": "CNBC:BTC="
       }
     ],
     "eth": [
@@ -18069,6 +18094,11 @@
       {
         "date": "2026-11-22",
         "value": 1659.22,
+        "source": "CNBC:ETH="
+      },
+      {
+        "date": "2026-11-23",
+        "value": 1721.55,
         "source": "CNBC:ETH="
       }
     ],
@@ -18202,6 +18232,11 @@
         "date": "2026-11-22",
         "value": 158.5592081,
         "source": "currency-api/jsDelivr"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 158.96367154,
+        "source": "currency-api/jsDelivr"
       }
     ],
     "usdcnh": [
@@ -18333,6 +18368,11 @@
       {
         "date": "2026-11-22",
         "value": 6.67674044,
+        "source": "currency-api/jsDelivr"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 6.66837955,
         "source": "currency-api/jsDelivr"
       }
     ]
