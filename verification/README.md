@@ -44,3 +44,17 @@
 - 无/非法时间戳的 CNBC 报价进入 `failed_indicators`、不进有效报价，指标标 `stale` 并沿用上次有效值。
 - 端到端断言 `build_snapshot()` 不把系统当天日期写入历史（`test_snapshot_does_not_backfill_system_date`）。
 - 两项可选测试：`test_one_fred_series_failure_does_not_affect_others`、`test_all_stale_inputs_force_insufficient` 均通过。
+
+## 7. 执行机时钟与日志时间口径核对（终轮收尾）
+
+针对"生成时间晚于审计会话时间"的疑问，实测核对如下（结论：时区标注差异，非时钟错误）：
+
+| 项 | 取值 |
+|---|---|
+| 执行机本地时区 | `Asia/Shanghai`（`/etc/timezone`），`date` = `2026-11-23 19:49:30 CST (+0800)` |
+| UTC 基准 | `date -u` = `2026-11-23 11:49:30 UTC`（与本地相差正好 8 小时，时钟无漂移） |
+| `update_run.log` 时间 | `2026-11-23 19:33:35`（logging `%(asctime)s`，本地时区 UTC+8） |
+| `snapshot.json` `generated_at` | `2026-11-23T20:33:35+09:00`（代码固定 Asia/Tokyo，UTC+9） |
+| 换算为 UTC | 两者均为 **`2026-11-23T11:33:35Z`** —— 同一绝对时刻 |
+
+日志与快照仅时区标注不同（+08:00 vs +09:00），字面差 1 小时；若审计会话按 UTC 或其它时区比较会再叠加偏移。各指标 `as_of`（如 CNBC `@ 2026-11-23`、FRED `observation_date`）直接来自数据源，与生成时间戳互相独立，未做任何改动。复核时请以带偏移的绝对时刻或 UTC 比较。
