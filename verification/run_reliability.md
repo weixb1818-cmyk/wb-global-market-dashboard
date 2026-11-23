@@ -36,7 +36,7 @@
 
 | Run ID | 启动(UTC) | 事件 | 结论 | Head SHA |
 |---|---|---|---|---|
-| （待补）本次修复后手动触发 | — | workflow_dispatch | — | 修复 commit |
+| 45192190028 | 2026-11-23 14:1x | workflow_dispatch | success | 9a5ef91e7d |
 | 45190822884 | 2026-11-23 14:0x | push | **failure** | 6bbddeb93 |
 | 45166640886 | 2026-11-23 11:35 | workflow_dispatch | success | 7af53330 |
 | 45156913932 | 2026-11-23 10:31 | workflow_dispatch | success | 13ff98d6 |
@@ -50,7 +50,7 @@
 - **run 45190822884（failure）**：本阶段首次提交（commit `6bbddeb`）后由 push 触发，失败。
 - **根因**：新增的"记录完成时刻"步骤写成单行 `run: echo "...(UTC): $(date ...)"`，其中 `(UTC): ` 的冒号加空格在 YAML 中被解析为映射分隔符，导致 `.github/workflows/update.yml` **YAML 语法错误**，GitHub 无法解析该 workflow（workflows API 显示名称为文件名占位、手动 dispatch 返回 422 "does not have workflow_dispatch trigger"）。
 - **发现方式**：提交后主动核查 Actions 运行记录时发现该 failure 与 dispatch 422，随即定位到 YAML 解析错误（`yaml.safe_load` 报 `ScannerError` line 48）。
-- **修复**：将该步骤改为块标量 `run: |`；`yaml.safe_load` 复验通过，触发器正确识别为 `schedule` + `workflow_dispatch`。修复后重新触发手动运行验证（见上表首行，待运行后填入 run ID）。
+- **修复**：将该步骤改为块标量 `run: |`；`yaml.safe_load` 复验通过，workflows API 名称由文件名占位恢复为"每日更新市场快照"，dispatch 返回 204。修复后手动运行 **run 45192190028 → success**（head = 修复 commit `9a5ef91`），闭环验证。
 - **数据影响**：该 failure 发生在 workflow 解析阶段，**未执行取数脚本，未改动任何数据文件**；数据真实性不受影响。
 - **教训**：workflow 单行 `run:` 含 `: ` 必须加引号或改用 `run: |`；已将复验纳入提交前检查。
 - 本地 `data/run_log.json` 另记录每次脚本执行的精确计划/启动/完成时间（当前为本地手动运行样本）。
