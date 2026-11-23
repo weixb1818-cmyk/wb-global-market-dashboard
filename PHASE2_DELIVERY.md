@@ -12,7 +12,7 @@
 | 3 | 商品连续合约与利差核验 | `research/commodity_contracts.md` + 快照 `crosscheck` | ✅ |
 | 4 | 宏观规则历史案例与误判分析 | `research/macro_case_study.md` + `scripts/macro_case_study.py` | ✅ |
 | 5 | 每日更新与异常处理记录 | `verification/run_reliability.md` + `data/run_log.json` | ✅（含边界说明） |
-| 6 | 自动测试结果及未解决限制 | `verification/test_run.log`（65 项）+ 本文档 | ✅ |
+| 6 | 自动测试结果及未解决限制 | `verification/test_run.log`（79 项）+ 本文档 | ✅ |
 | 7 | 数据来源严谨性证据 | `research/*` + `data/provenance.json`（原文仅本地留存，不公开） | ✅ |
 
 ## 一、P0 提高宏观判断可用性
@@ -83,7 +83,7 @@
   - 研究文档：`research/history_feasibility.md`、`commodity_contracts.md`、`macro_case_study.md`
   - 代码：`core.py`（crosscheck_spread）、`scripts/update_data.py`（交叉验证 + 溯源 + 运行记录）、`scripts/macro_case_study.py`、`provenance.py`
   - 配置：`config.json`（crosscheck 阈值、schedule、run_log）、`requirements.txt`（锁定版本）
-  - 测试：`tests/test_crosscheck.py`、`test_history_threshold.py`、`test_provenance.py`、`test_run_log.py`（共 65 项）
+  - 测试：`tests/test_crosscheck.py`、`test_history_threshold.py`、`test_provenance.py`、`test_run_log.py`、`test_quote_label.py`（共 79 项；含 WB 下一轮整改新增 fail-closed 与延迟标签测试）
   - 数据：`data/snapshot.json`（含 crosscheck）、`data/provenance.json`、`data/run_log.json`（`data/raw/fred/` 原始响应仅本地留存，不提交）
   - 工作流：`.github/workflows/update.yml`（时间打点 + 溯源文件入库）
   - 证据：`verification/*`（test_run.log、update_run.log、actions_run_45192190028.log、macro_case_study.log、github_actions_runs.json、run_reliability.md）

@@ -1,28 +1,23 @@
-# 本文件记录生成当前 data/snapshot.json（generated_at=2026-11-23T23:15:32+09:00，即 2026-11-23T14:15:32Z）的
-# GitHub Actions 运行批次：run 45192190028（workflow_dispatch，head commit 9a5ef91，机器人提交 022fb6df）。
-# Actions runner 时区为 UTC，日志时间戳为 14:15:xx，与快照 +09:00 标注相差 9 小时，属同一绝对时刻。
-# 原始带 GitHub UTC 时间戳的完整步骤日志见 verification/actions_run_45192190028.log。
-
-2026-11-23 14:15:26,361 INFO FRED us2y 取得 12614 个有效观测
-2026-11-23 14:15:26,858 INFO FRED us10y 取得 16206 个有效观测
-2026-11-23 14:15:27,338 INFO FRED us10y_real 取得 5975 个有效观测
-2026-11-23 14:15:27,810 INFO FRED t10y2y 取得 12615 个有效观测
-2026-11-23 14:15:28,327 INFO FRED t10y3m 取得 11224 个有效观测
-2026-11-23 14:15:28,834 INFO FRED vix 取得 9321 个有效观测
-2026-11-23 14:15:29,264 INFO FRED hy_oas 取得 786 个有效观测
-2026-11-23 14:15:29,737 INFO FRED sp500 取得 2513 个有效观测
-2026-11-23 14:15:30,232 INFO FRED nasdaq100 取得 10303 个有效观测
-2026-11-23 14:15:30,713 INFO FRED dgs3mo 取得 11304 个有效观测
-2026-11-23 14:15:31,279 INFO CNBC dxy 取得 104.097 @ 2026-11-23
-2026-11-23 14:15:31,279 INFO CNBC sp500 取得 6910.39 @ 2026-11-20
-2026-11-23 14:15:31,279 INFO CNBC nasdaq100 取得 25028.982 @ 2026-11-20
-2026-11-23 14:15:31,279 INFO CNBC gold 取得 3656.5 @ 2026-11-23
-2026-11-23 14:15:31,279 INFO CNBC wti 取得 82.13 @ 2026-11-23
-2026-11-23 14:15:31,279 INFO CNBC copper 取得 5.6265 @ 2026-11-23
-2026-11-23 14:15:31,279 INFO CNBC btc 取得 63341.2 @ 2026-11-23
-2026-11-23 14:15:31,279 INFO CNBC eth 取得 1800.42 @ 2026-11-23
-2026-11-23 14:15:32,140 INFO currency-api usdjpy 取得 25 个有效观测
-2026-11-23 14:15:32,140 INFO currency-api usdcnh 取得 25 个有效观测
-2026-11-23 14:15:32,211 INFO 溯源清单已写入 /home/runner/work/wb-global-market-dashboard/wb-global-market-dashboard/data/provenance.json（37 条请求记录）
-2026-11-23 14:15:32,211 INFO 快照已写入 /home/runner/work/wb-global-market-dashboard/wb-global-market-dashboard/data/snapshot.json；宏观状态=insufficient；失败源=[]
-2026-11-23 14:15:32,211 INFO 运行记录已追加：启动=2026-11-23T14:15:26+00:00 完成=2026-11-23T14:15:32+00:00 延迟=840.4分钟 状态=ok
+2026-11-23 23:52:50,567 INFO FRED us2y 取得 12614 个有效观测
+2026-11-23 23:52:54,010 INFO FRED us10y 取得 16206 个有效观测
+2026-11-23 23:52:57,414 INFO FRED us10y_real 取得 5975 个有效观测
+2026-11-23 23:53:00,907 INFO FRED t10y2y 取得 12615 个有效观测
+2026-11-23 23:53:04,346 INFO FRED t10y3m 取得 11224 个有效观测
+2026-11-23 23:53:06,928 INFO FRED vix 取得 9322 个有效观测
+2026-11-23 23:53:11,143 INFO FRED hy_oas 取得 784 个有效观测
+2026-11-23 23:53:14,667 INFO FRED sp500 取得 2511 个有效观测
+2026-11-23 23:53:17,152 INFO FRED nasdaq100 取得 10303 个有效观测
+2026-11-23 23:53:19,653 INFO FRED dgs3mo 取得 11304 个有效观测
+2026-11-23 23:53:20,532 INFO CNBC dxy 取得 104.364 @ 2026-11-23
+2026-11-23 23:53:20,533 INFO CNBC sp500 取得 7256.41 @ 2026-11-23
+2026-11-23 23:53:20,533 INFO CNBC nasdaq100 取得 26785.178 @ 2026-11-23
+2026-11-23 23:53:20,533 INFO CNBC gold 取得 3676.0 @ 2026-11-23
+2026-11-23 23:53:20,533 INFO CNBC wti 取得 80.59 @ 2026-11-23
+2026-11-23 23:53:20,533 INFO CNBC copper 取得 5.662 @ 2026-11-23
+2026-11-23 23:53:20,533 INFO CNBC btc 取得 62794.42 @ 2026-11-23
+2026-11-23 23:53:20,533 INFO CNBC eth 取得 1769.37 @ 2026-11-23
+2026-11-23 23:53:29,596 INFO currency-api usdjpy 取得 25 个有效观测
+2026-11-23 23:53:29,597 INFO currency-api usdcnh 取得 25 个有效观测
+2026-11-23 23:53:29,670 INFO 溯源清单已写入 /workspace/global-market-dashboard/data/provenance.json（37 条请求记录）
+2026-11-23 23:53:29,670 INFO 快照已写入 /workspace/global-market-dashboard/data/snapshot.json；宏观状态=insufficient；失败源=[]
+2026-11-23 23:53:29,671 INFO 运行记录已追加：run_id=local-20261123T155247Z 触发=manual_local 启动=2026-11-23T15:52:47+00:00 完成=2026-11-23T15:53:29+00:00 延迟=不适用(手动) 结论=ok

@@ -2,24 +2,25 @@
 
 本目录保存第二轮整改后的实际运行证据，均可对照源码复现。
 
-> **批次对齐说明（下一阶段终态）**：当前 `data/snapshot.json`（`generated_at=2026-11-23T23:15:32+09:00`）、`verification/update_run.log`、`data/provenance.json`、`data/run_log.json` 同属 **Actions run `45192190028`**（`workflow_dispatch` / head commit `9a5ef91`，机器人自动提交 `022fb6df`）**一次运行**，日志与快照六项行情数值已程序逐项核对吻合。更早的 `45166640886` 批次及其原始日志 `actions_run_45166640886.log` 仍为**真实历史记录，予以保留**，但不再对应当前快照。这是如实披露的批次演进，非数据造假。下一阶段完整交付见 `PHASE2_DELIVERY.md`。
+> **批次对齐说明（WB 下一轮整改终态）**：当前 `data/snapshot.json`（`generated_at=2026-11-24T00:53:29+09:00`，即 UTC `2026-11-23T15:53:29Z`）、`verification/update_run.log`、`data/provenance.json`、`data/run_log.json` 同属**本轮一次本地真实运行**（`trigger_type=manual_local`，`run_id=local-20261123T155247Z`），日志与快照由同一次 `python3 scripts/update_data.py` 产生，行情数值逐项吻合。更早的 Actions 批次 `45192190028`（及 `45166640886`）与其原始日志 `actions_run_45192190028.log` / `actions_run_45166640886.log` 均为**真实历史记录，予以保留**，但不再对应当前快照。这是如实披露的批次演进，非数据造假。本轮交付见 `ROUND3_HANDOFF.md`；上一阶段见 `PHASE2_DELIVERY.md`。
 
 ## 1. 单元测试完整结果
 
 - 文件：`test_run.log`
 - 命令：`python3 -m unittest discover -s tests -v`
-- 结果：**Ran 65 tests ... OK**（原 43 项 + 下一阶段质量提升新增 22 项）
+- 结果：**Ran 79 tests ... OK**（原 65 项 + WB 下一轮整改新增 14 项）
 - 新增项涵盖：CNBC 合法/无/非法时间戳解析、无/非法时间戳报价进 failed、端到端不回填系统日期，以及两项可选测试（FRED 单序列失败隔离、宏观全 stale fail-closed）。
-- 下一阶段新增 22 项：利差同日交叉验证（7）、21 观测达标（5）、审计溯源（5）、运行记录（5）。
+- 下一阶段新增 14 项：利差同日交叉验证（7）、21 观测达标（5）、审计溯源（5）、运行记录（5）——上一阶段共新增 22 项（43→65）。
+- WB 下一轮整改新增 14 项（65→79）：宏观 fail-closed 严格白名单（6）、延迟报价独立标签（5）、运行记录触发类型/8 字段/手动不计延迟（3）。
 
 ## 2. 更新脚本运行日志
 
-- 文件：`update_run.log`（**与当前 `snapshot.json` 同一批次**，run `45192190028` / 机器人提交 `022fb6df`；见顶部批次对齐说明）。
-- 命令：`python3 scripts/update_data.py`（由 GitHub Actions 执行）。
+- 文件：`update_run.log`（**与当前 `snapshot.json` 同一批次**，本轮本地真实运行 `run_id=local-20261123T155247Z`；见顶部批次对齐说明）。
+- 命令：`python3 scripts/update_data.py`（本轮由本地执行；生产由 GitHub Actions 定时/手动执行）。
 - 结果：`失败源=[]`，全部真实数据源取数成功；`快照已写入 … 宏观状态=insufficient`。
 - 日志逐条记录 FRED 各序列、CNBC 各报价、currency-api 各币种的观测数与数据日期。
-- Actions runner 时区为 UTC，日志时间戳 `14:15:xx` 与快照 `generated_at=23:15:32+09:00` 是同一绝对时刻 `2026-11-23T14:15:32Z`；日志中行情数值（`CNBC dxy 104.097`、`gold 3656.5`、`wti 82.13`、`copper 5.6265`、`btc 63341.2`、`eth 1800.42`）与快照逐项吻合。
-- 原始带 GitHub UTC 时间戳的完整步骤日志：`actions_run_45192190028.log`。历史批次 `actions_run_45166640886.log` 及更早的本地预验证运行（`19:33:35 +08:00 = 11:33:35Z`）均为**不同批次**，如实保留、不作当前快照的对应日志。
+- 本机时区为 UTC+8，日志时间戳 `15:52:xx~15:53:xx`（UTC）与快照 `generated_at=2026-11-24T00:53:29+09:00`（= UTC `2026-11-23T15:53:29Z`）是同一绝对时刻；日志中行情数值与快照逐项吻合。
+- 历史 Actions 批次的完整步骤日志 `actions_run_45192190028.log`、`actions_run_45166640886.log` 均为**不同批次**，如实保留、不作当前快照的对应日志。
 
 ## 3. 更新后的数据文件
 
@@ -56,7 +57,7 @@
 
 ### 7.1 两份文件原属不同运行批次（已修正日志）
 
-> 本节为**审计第 4 轮当时的历史复盘**，表中"当前"均指该时点；下一阶段之后的批次演进见本文档顶部"批次对齐说明"，当前快照对应的日志为 `update_run.log` / run `45192190028`。
+> 本节为**审计第 4 轮当时的历史复盘**，表中"当前"均指该时点；之后的批次演进见本文档顶部"批次对齐说明"，当前快照对应的日志为 `update_run.log`（本轮本地 run `local-20261123T155247Z`）。
 
 初核对时误将两次不同运行的产物放在一起比较：
 

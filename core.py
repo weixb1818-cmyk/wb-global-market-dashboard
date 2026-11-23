@@ -252,18 +252,31 @@ def classify_macro(inputs: Dict[str, Optional[float]],
                    statuses: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
     """
     按规格 5.3 顺序匹配，只输出一个主状态。
-    任一关键输入缺失、或状态为 stale/missing/error -> 数据不足：暂不判断。
-    statuses 的键与 inputs 一致（如 dxy20/hyNow）；状态非 'ok' 的值一律不参与判断，
-    即使其数值非空（防止用过期历史变化值给出正常分类）。不复用昨日结论。
+
+    审计 WB 第 1 项（fail-closed 严格白名单）：
+    - 仅当某关键输入的 statuses[k] 严格等于 'ok' 时，该输入才允许参与分类；
+    - stale/missing/error/unknown/空串/未定义值一律阻断，即使其数值非空；
+    - 未传 statuses 或 statuses 为空 -> 视为状态未经验证，一律 insufficient，
+      不再退化为“按值校验”（审计明确拒绝按值降级）；
+    - 不复用昨日结论。
+    保留 statuses 参数结构，仅收紧判定语义，不做架构变更。
     """
     t = config["macro_thresholds"]
-    statuses = statuses or {}
-    bad_states = {"stale", "missing", "error"}
+    # 严格 fail-closed：statuses 缺失/为空 -> 状态未经验证，直接不足。
+    if not statuses:
+        return {
+            "state": "insufficient",
+            "headline": "数据不足：暂不判断",
+            "why": "状态未经验证（未提供 statuses），不输出宏观结论",
+            "uncertainty": "需为全部关键输入显式提供已核实状态，不沿用旧结论",
+            "missing": list(REQUIRED_MACRO_KEYS),
+        }
+    # 白名单：只认严格字符串 'ok'；未知/空串/None/其它值一律阻断。
     missing = []
     for k in REQUIRED_MACRO_KEYS:
         if inputs.get(k) is None:
             missing.append(k)
-        elif statuses.get(k) in bad_states:
+        elif statuses.get(k) != "ok":
             missing.append(k)
     if missing:
         return {
@@ -473,6 +486,36 @@ def card_note(ind_id: str, change_20: Optional[float], config: Dict[str, Any],
         return "汇率基本稳定"
 
     return "暂无解读模板"
+
+
+# --------------------------------------------------------------------------
+# 报价性质标签（审计 WB 第 2 项：延迟报价提示）
+# --------------------------------------------------------------------------
+QUOTE_NATURE_LABELS = {
+    # 仅描述“报价性质”，与数据时效状态 status（ok/stale/...）相互独立。
+    # realTime=false 的 CNBC 近月期货 → 延迟行情；不改变取数状态判定。
+    "delayed_futures": "延迟报价·非实时可成交价",
+}
+
+
+def quote_label(ind_id: str, config: Dict[str, Any],
+                status: Optional[str] = None) -> Optional[str]:
+    """返回报价性质独立标签；与 status 完全分离。
+
+    审计 WB 第 2 项要求：
+    - 黄金/WTI/铜（CNBC 近月期货，realTime=false）显示“延迟报价·非实时可成交价”；
+    - 不因 realTime=false 把正常报价标成 stale（status 由 _status_for 独立判定）；
+    - 真实报价日期由 as_of 单独展示，标签内不含日期；
+    - 数据源未提供可靠实时属性时不擅自标“实时”（此处只标确证的延迟品种）。
+    status 参数保留供未来扩展，当前标签不受其影响——即使 status=stale，
+    仍可显示报价性质标签，而“数据暂未更新”由 note/status badge 另行表达。
+    """
+    for meta in config.get("indicators", []):
+        if meta.get("id") != ind_id:
+            continue
+        nature = meta.get("quote_nature")
+        return QUOTE_NATURE_LABELS.get(nature) if nature else None
+    return None
 
 
 # --------------------------------------------------------------------------

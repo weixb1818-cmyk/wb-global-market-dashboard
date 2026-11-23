@@ -5,7 +5,7 @@
     "planned_local": "北京时间 08:15（= UTC 00:15 = 东京 09:15）",
     "note": "GitHub Actions 免费调度无法保证严格准点；延迟数分钟属正常，不承诺 SLA"
   },
-  "note": "仅记录真实发生的执行；GitHub 免费调度延迟数分钟属正常，非 SLA 违约",
+  "note": "仅记录脚本真实发生的执行；script_started/snapshot_generated 恒为 true。workflow 解析失败等‘脚本未启动’记录见 verification/github_actions_runs.json。定时延迟仅对 scheduled 计算，手动运行不计入。",
   "runs": [
     {
       "planned_utc": "2026-11-23T00:15:00+00:00",
@@ -54,6 +54,41 @@
       "failed_sources": [],
       "failed_indicators": [],
       "trigger": "workflow_dispatch"
+    },
+    {
+      "planned_utc": "2026-11-23T00:15:00+00:00",
+      "started_utc": "2026-11-23T15:49:55+00:00",
+      "finished_utc": "2026-11-23T15:50:52+00:00",
+      "delay_minutes": 934.9,
+      "duration_seconds": 57.7,
+      "status": "partial",
+      "macro_state": "insufficient",
+      "failed_sources": [],
+      "failed_indicators": [
+        "btc",
+        "copper",
+        "gold"
+      ],
+      "trigger": "manual/local"
+    },
+    {
+      "run_id": "local-20261123T155247Z",
+      "trigger_type": "manual_local",
+      "started_at": "2026-11-23T15:52:47+00:00",
+      "completed_at": "2026-11-23T15:53:29+00:00",
+      "conclusion": "ok",
+      "script_started": true,
+      "snapshot_generated": true,
+      "commit_sha": "local",
+      "planned_utc": "2026-11-23T00:15:00+00:00",
+      "delay_minutes": null,
+      "delay_note": "手动运行：不计入定时任务延迟统计",
+      "duration_seconds": 42.0,
+      "status": "ok",
+      "macro_state": "insufficient",
+      "failed_sources": [],
+      "failed_indicators": [],
+      "trigger": "manual_local"
     }
   ]
 }

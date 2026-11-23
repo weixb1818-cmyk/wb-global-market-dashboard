@@ -59,7 +59,15 @@
     head.appendChild(el("div", "card-name", item.name));
     var badge = el("span", "badge " + (item.status || "ok"),
       STATUS_TEXT[item.status] || "已更新");
-    head.appendChild(badge);
+    // 右对齐标签容器：数据状态 badge 与报价性质标签竖排，互不影响。
+    var tags = el("div", "head-tags");
+    tags.appendChild(badge);
+    // 报价性质独立标签（如近月期货“延迟报价·非实时可成交价”），
+    // 与数据状态 badge 分离，避免把 realTime=false 误读为取数失败或实时可成交。
+    if (item.quote_label) {
+      tags.appendChild(el("span", "quote-tag", item.quote_label));
+    }
+    head.appendChild(tags);
     card.appendChild(head);
 
     var value = el("div", "card-value", item.display_value || "—");

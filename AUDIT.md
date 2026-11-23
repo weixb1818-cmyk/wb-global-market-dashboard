@@ -1,6 +1,8 @@
 # 审计文档：全球市场每日观察面板（P0 / V1.0）
 
-> **下一阶段质量提升交付见 [`PHASE2_DELIVERY.md`](PHASE2_DELIVERY.md)**：免费历史源可行性研究（`research/history_feasibility.md`）、商品合约口径（`research/commodity_contracts.md`）、利差同日交叉验证（快照 `crosscheck` 字段）、宏观规则无前视案例复盘（`research/macro_case_study.md`）、运行可靠性与审计溯源（`verification/run_reliability.md`、`data/provenance.json`）。测试已增至 65 项。
+> **WB 下一轮整改交付见 [`ROUND3_HANDOFF.md`](ROUND3_HANDOFF.md)**：宏观分类严格白名单 fail-closed（未传/未知状态一律不足）、黄金/WTI/铜延迟报价独立标签、运行记录触发类型区分与 8 字段补全（含 10 日记录分阶段交付约定）。测试增至 79 项。
+>
+> **下一阶段质量提升交付见 [`PHASE2_DELIVERY.md`](PHASE2_DELIVERY.md)**：免费历史源可行性研究（`research/history_feasibility.md`）、商品合约口径（`research/commodity_contracts.md`）、利差同日交叉验证（快照 `crosscheck` 字段）、宏观规则无前视案例复盘（`research/macro_case_study.md`）、运行可靠性与审计溯源（`verification/run_reliability.md`、`data/provenance.json`）。测试已增至 79 项。
 
 > 本文供第三方逐项核对：**每个指标的数据源、字段、单位、计算口径、时间戳与缺失处理**。
 > 所有实现均可在同目录源码中核对：`core.py`（纯逻辑）、`scripts/update_data.py`（取数与生成）、`config.json`（阈值与源映射）、`tests/test_core.py`（验收测试）。
@@ -14,7 +16,7 @@
   git clone https://github.com/weixb1818-cmyk/wb-global-market-dashboard.git
   cd wb-global-market-dashboard
   python3 -m pip install -r requirements.txt
-  python3 -m unittest discover -s tests -v     # 复现全部单元测试（65 项）
+  python3 -m unittest discover -s tests -v     # 复现全部单元测试（79 项）
   ```
 - 四个核心文件免登录直读（`<REF>` 为仓库当前 commit SHA，见仓库首页；亦可用 `main`）：
   - `core.py`：`https://raw.githubusercontent.com/weixb1818-cmyk/wb-global-market-dashboard/main/core.py`
@@ -194,7 +196,7 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 
 ---
 
-## 六、测试覆盖（`tests/` 下 5 个测试文件，共 65 项全通过）
+## 六、测试覆盖（`tests/` 下 7 个测试文件，共 79 项全通过）
 
 1. 17 指标名称与单位完整且正确；配置中无就业/ISM/CPI 等越界指标
 2. 10Y-2Y 正负 bp 计算；HY OAS 3.20% → 320bp；变化不混淆 `%` 与 `bp`
@@ -226,7 +228,13 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 19. 审计溯源：sha256 确定性、不可再分发源不内联原文、失败请求记录、按源汇总、不同正文不同哈希
 20. 运行记录：计划/启动/完成时间、延迟（含负值）、失败状态检测（ok/partial/fail）、追加与上限、不预填历史
 
-运行方式：`python3 -m unittest discover -s tests -v`（当前 65 项全通过，见 `verification/test_run.log`）
+**WB 下一轮整改新增（`test_core.py:TestMacroFailClosed` / `test_quote_label.py` / `test_run_log.py`，共 14 项）**：
+
+21. 宏观 fail-closed 严格白名单：未传/空 `statuses`、缺状态字段、`unknown`、空串、未定义值一律 `insufficient`；仅严格 `ok` 放行
+22. 延迟报价独立标签：黄金/WTI/铜有「延迟报价·非实时可成交价」标签、非商品无标签、标签与 status 独立、标签不含日期、不标"实时"
+23. 运行记录：8 必含字段齐全、三类触发互斥映射、定时延迟仅 scheduled 计算/手动 null 不计入、conclusion 结论
+
+运行方式：`python3 -m unittest discover -s tests -v`（当前 79 项全通过，见 `verification/test_run.log`）
 
 ---
 

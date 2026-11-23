@@ -82,35 +82,42 @@ class TestUnitsAndChanges(unittest.TestCase):
         self.assertAlmostEqual(r["change_1"], -2.5)
 
 
+def all_ok(**overrides):
+    """全部关键输入状态显式为 ok；可覆盖个别字段用于拒绝测试。"""
+    s = {k: "ok" for k in macro_inputs()}
+    s.update(overrides)
+    return s
+
+
 class TestMacroClassification(unittest.TestCase):
     def test_tightening(self):
-        r = classify_macro(macro_inputs(dxy20=1.5, real20bp=20), CFG)
+        r = classify_macro(macro_inputs(dxy20=1.5, real20bp=20), CFG, all_ok())
         self.assertEqual(r["state"], "tightening")
 
     def test_moderate_easing(self):
         r = classify_macro(macro_inputs(dxy20=-1.5, real20bp=-20,
                                         hy20bp=-10, vix20pt=-2,
-                                        hyNow=300, vixNow=16), CFG)
+                                        hyNow=300, vixNow=16), CFG, all_ok())
         self.assertEqual(r["state"], "moderate_easing")
 
     def test_stress_beats_easing(self):
         r = classify_macro(macro_inputs(dxy20=-2.0, real20bp=-20,
-                                        hy20bp=40, vix20pt=5), CFG)
+                                        hy20bp=40, vix20pt=5), CFG, all_ok())
         self.assertEqual(r["state"], "stress_spread")
         self.assertIn("防御", r["headline"])
 
     def test_growth_concern(self):
         r = classify_macro(macro_inputs(twoYear20bp=-40, hy20bp=30,
-                                        vix20pt=1), CFG)
+                                        vix20pt=1), CFG, all_ok())
         self.assertEqual(r["state"], "growth_concern")
 
     def test_high_but_falling_is_not_stress(self):
         r = classify_macro(macro_inputs(hyNow=500, vixNow=30,
-                                        hy20bp=-30, vix20pt=-4), CFG)
+                                        hy20bp=-30, vix20pt=-4), CFG, all_ok())
         self.assertNotEqual(r["state"], "stress_spread")
 
     def test_missing_key_data(self):
-        r = classify_macro(macro_inputs(dxy20=None), CFG)
+        r = classify_macro(macro_inputs(dxy20=None), CFG, all_ok())
         self.assertEqual(r["state"], "insufficient")
         self.assertIn("dxy20", r["missing"])
         self.assertIn("暂不判断", r["headline"])
@@ -119,7 +126,7 @@ class TestMacroClassification(unittest.TestCase):
         """P1：关键指标有历史数值但状态为 stale，不得据此给出正常分类。"""
         r = classify_macro(
             macro_inputs(dxy20=1.5, real20bp=20), CFG,
-            statuses={"dxy20": "stale"},
+            statuses=all_ok(dxy20="stale"),
         )
         self.assertEqual(r["state"], "insufficient")
         self.assertIn("dxy20", r["missing"])
@@ -128,7 +135,7 @@ class TestMacroClassification(unittest.TestCase):
     def test_error_and_missing_status_also_rejected(self):
         """P1：error / missing 状态同样视为数据不足。"""
         r = classify_macro(macro_inputs(), CFG,
-                           statuses={"hy20bp": "error", "vixNow": "missing"})
+                           statuses=all_ok(hy20bp="error", vixNow="missing"))
         self.assertEqual(r["state"], "insufficient")
         self.assertIn("hy20bp", r["missing"])
         self.assertIn("vixNow", r["missing"])
@@ -136,15 +143,60 @@ class TestMacroClassification(unittest.TestCase):
     def test_ok_status_allows_classification(self):
         """P1：状态显式为 ok 时正常分类（防止过度拒绝）。"""
         r = classify_macro(macro_inputs(dxy20=1.5, real20bp=20), CFG,
-                           statuses={k: "ok" for k in macro_inputs()})
+                           statuses=all_ok())
         self.assertEqual(r["state"], "tightening")
 
     def test_no_investment_instruction(self):
         for kw in ("买入", "做多", "做空", "必涨", "衰退已至"):
             for kwargs in ({}, {"dxy20": 2, "real20bp": 20},
                            {"dxy20": -2, "real20bp": -20, "hy20bp": -5, "vix20pt": -1}):
-                text = str(classify_macro(macro_inputs(**kwargs), CFG))
+                text = str(classify_macro(macro_inputs(**kwargs), CFG, all_ok()))
                 self.assertNotIn(kw, text)
+
+
+class TestMacroFailClosed(unittest.TestCase):
+    """审计 WB 第 1 项：严格白名单——只认显式 'ok'，其余一律 fail-closed。"""
+
+    def _value_ready(self):
+        """数值齐备且本可判 tightening 的输入，用于证明拒绝源于状态而非数值。"""
+        return macro_inputs(dxy20=1.5, real20bp=20)
+
+    def test_statuses_not_provided_is_insufficient(self):
+        """未传 statuses：状态未经验证，一律不足（不再按值降级）。"""
+        r = classify_macro(self._value_ready(), CFG)
+        self.assertEqual(r["state"], "insufficient")
+        self.assertEqual(set(r["missing"]), set(macro_inputs()))
+
+    def test_statuses_empty_dict_is_insufficient(self):
+        """statuses 为空：视为未经验证，一律不足。"""
+        r = classify_macro(self._value_ready(), CFG, statuses={})
+        self.assertEqual(r["state"], "insufficient")
+
+    def test_missing_status_field_blocks_input(self):
+        """缺某个 key 的状态字段：该输入被阻断，不得默认放行。"""
+        partial = {k: "ok" for k in list(macro_inputs())[:-1]}  # 少一个字段
+        r = classify_macro(self._value_ready(), CFG, statuses=partial)
+        self.assertEqual(r["state"], "insufficient")
+        self.assertTrue(set(r["missing"]))
+
+    def test_unknown_status_is_rejected(self):
+        r = classify_macro(self._value_ready(), CFG,
+                           statuses=all_ok(dxy20="unknown"))
+        self.assertEqual(r["state"], "insufficient")
+        self.assertIn("dxy20", r["missing"])
+
+    def test_empty_string_status_is_rejected(self):
+        r = classify_macro(self._value_ready(), CFG,
+                           statuses=all_ok(dxy20=""))
+        self.assertEqual(r["state"], "insufficient")
+        self.assertIn("dxy20", r["missing"])
+
+    def test_undefined_status_values_are_rejected(self):
+        for bad in ("OK", "Ok", "true", 1, None):
+            r = classify_macro(self._value_ready(), CFG,
+                               statuses=all_ok(vixNow=bad))
+            self.assertEqual(r["state"], "insufficient", f"bad status {bad!r}")
+            self.assertIn("vixNow", r["missing"])
 
 
 class TestCardNotes(unittest.TestCase):

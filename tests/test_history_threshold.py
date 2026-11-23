@@ -85,7 +85,8 @@ class TestHistoryThreshold(unittest.TestCase):
 
     def test_insufficient_does_not_reuse_stale_value(self):
         """样本不足阶段（缺 change_20）不得沿用昨日分类结论。"""
-        r = classify_macro(macro_inputs(dxy20=None), CFG)
+        statuses = {k: "ok" for k in macro_inputs()}
+        r = classify_macro(macro_inputs(dxy20=None), CFG, statuses)
         self.assertEqual(r["state"], "insufficient")
         self.assertIn("不沿用旧结论", r["uncertainty"])
 

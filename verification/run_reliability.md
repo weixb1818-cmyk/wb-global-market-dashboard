@@ -16,19 +16,43 @@
 ## 二、时间记录机制（已实现）
 
 1. **workflow 层**：`记录调度时刻`步打印计划时间、实际启动 UTC、触发事件；`记录完成时刻`步打印完成 UTC。
-2. **脚本层**：`scripts/update_data.py` 的 `append_run_log()` 追加记录到 `data/run_log.json`：
-   - `planned_utc`（当天 UTC 00:15）、`started_utc`、`finished_utc`
-   - `delay_minutes`（实际启动 − 计划，提前为负，如实记录）
-   - `duration_seconds`、`status`（ok / partial / fail）
-   - `failed_sources`、`failed_indicators`、`trigger`
-   - 保留最近 60 条（`config.run_log.keep_last`）
+2. **脚本层**：`scripts/update_data.py` 的 `append_run_log()` 追加记录到 `data/run_log.json`。
+   每条记录含审计要求的全部字段（WB 第 4 项）：
+
+   | 字段 | 含义 |
+   |---|---|
+   | `run_id` | `GITHUB_RUN_ID`（Actions）或 `local-<UTC时间戳>`（本地） |
+   | `trigger_type` | `scheduled`（定时）/ `manual_dispatch`（GitHub 手动派发）/ `manual_local`（本地手动），三类中互斥 |
+   | `started_at` / `completed_at` | 实际启动/完成 UTC |
+   | `conclusion` | `ok` / `partial` / `fail`（脚本层执行结论） |
+   | `script_started` / `snapshot_generated` | 恒为 `true`（本记录由脚本执行末尾写入） |
+   | `commit_sha` | `GITHUB_SHA` 或 `local` |
+   | `planned_utc` / `delay_minutes` / `delay_note` | 计划时间、延迟、口径说明 |
+   | `duration_seconds` / `macro_state` / `failed_sources` / `failed_indicators` | 耗时、宏观状态、失败源与失败指标 |
+   | `status` / `trigger` | 旧字段名，与 `conclusion` / `trigger_type` 同值（兼容） |
+
+   - **定时延迟**：仅 `scheduled` 计算 `delay_minutes`（实际启动 − 当天 UTC 00:15，提前为负）；`manual_dispatch`/`manual_local` 的 `delay_minutes=null`，`delay_note="手动运行：不计入定时任务延迟统计"`，**不污染定时延迟统计**。
+   - 保留最近 60 条（`config.run_log.keep_last`）。
 3. 每次运行均由脚本真实写入，**不预填、不伪造历史运行**。
+
+### 两层记录映射（脚本层 vs workflow 层）
+
+| 维度 | `data/run_log.json`（脚本层） | `verification/github_actions_runs.json`（workflow 层） |
+|---|---|---|
+| 记录对象 | 脚本真实执行的运行 | 全部 workflow run（含脚本未启动即失败） |
+| `script_started` | 恒 true | 解析失败/前置步骤失败时为 false |
+| `snapshot_generated` | 恒 true | 仅脚本成功执行时为 true |
+| 触发类型 | scheduled / manual_dispatch / manual_local | schedule / workflow_dispatch / push 等事件 |
+
+- **YAML 解析阶段失败**（如 run `45190822884`）：只出现在 workflow 层，`conclusion=failure` 且 `script_started=false`、`snapshot_generated=false`，明确标记脚本未启动、没有生成快照；**不在脚本层伪造记录**。
+- 两层的 `run_id`（`GITHUB_RUN_ID`）可对应同一 workflow run；本地手动运行只在脚本层出现。
+- 早期（加入 run_log 字段前）的脚本运行缺少新字段，属历史记录，**不回填、不补造**。
 
 ## 三、漏跑 / 失败发现机制
 
 - **失败发现**：任一源级失败 → `status=fail`；仅逐指标失败 → `status=partial`；全部成功 → `ok`。快照中 `failed_sources`/`failed_indicators` 同步记录。
 - **漏跑发现**：`run_log.json` 每条记录带 `planned_utc`；按日比对即可发现缺失日期。但未实现主动告警（受免费条件与零成本约束，不接入付费通知服务）。给出复核命令（见第五节），人工/审计可随时核对。
-- **改进已做**：workflow 的 `git add` 已纳入 `data/provenance.json`、`data/run_log.json`、`data/raw/`，确保溯源文件随每日提交入库（此前遗漏，本轮修复）。
+- **改进已做**：workflow 的 `git add` 已纳入 `data/provenance.json`、`data/run_log.json`，确保溯源文件随每日提交入库（此前遗漏，本轮修复）。`data/raw/`（原始响应）按合规要求仅本地留存、不提交公开仓库。
 
 ## 四、真实运行记录（全部，未伪造）
 
@@ -43,7 +67,7 @@
 | 45131890988 | 2026-11-23 07:32 | schedule | success | d942ebf9 |
 | 44995019830 | 2026-11-22 06:43 | schedule | success | b058cc97 |
 
-- 共 5 次运行，跨 **2 个自然日**（11-22、11-23）。
+- 共 6 次运行（5 success + 1 failure），跨 **2 个自然日**（11-22、11-23）。
 
 ### 失败案例与修复（如实记录，对应审计"失败能够发现并提示"）
 
@@ -59,8 +83,11 @@
 ## 五、复核命令
 
 ```bash
-# 查看本地运行记录（计划/启动/完成/延迟/状态）
-python3 -c "import json; d=json.load(open('data/run_log.json')); [print(r['planned_utc'],r['started_utc'],r['delay_minutes'],r['status']) for r in d['runs']]"
+# 查看本地运行记录（run_id/触发类型/启动/完成/延迟/结论/字段完整性）
+python3 -c "import json; d=json.load(open('data/run_log.json')); [print(r['run_id'],r['trigger_type'],r['started_at'],r['completed_at'],r['delay_minutes'],r['conclusion']) for r in d['runs']]"
+
+# 仅统计定时运行的真实延迟（手动运行 delay_minutes=null，自动排除）
+python3 -c "import json; d=json.load(open('data/run_log.json')); print([(r['started_at'],r['delay_minutes']) for r in d['runs'] if r['trigger_type']=='scheduled'])"
 
 # 导出 GitHub Actions 真实运行记录（需 token）
 curl -sS -H "Authorization: token $GITHUB_TOKEN" \

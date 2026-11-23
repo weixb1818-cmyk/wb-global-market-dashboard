@@ -24,6 +24,15 @@ test_stale_key_data_with_value_is_rejected (test_core.TestMacroClassification.te
 P1：关键指标有历史数值但状态为 stale，不得据此给出正常分类。 ... ok
 test_stress_beats_easing (test_core.TestMacroClassification.test_stress_beats_easing) ... ok
 test_tightening (test_core.TestMacroClassification.test_tightening) ... ok
+test_empty_string_status_is_rejected (test_core.TestMacroFailClosed.test_empty_string_status_is_rejected) ... ok
+test_missing_status_field_blocks_input (test_core.TestMacroFailClosed.test_missing_status_field_blocks_input)
+缺某个 key 的状态字段：该输入被阻断，不得默认放行。 ... ok
+test_statuses_empty_dict_is_insufficient (test_core.TestMacroFailClosed.test_statuses_empty_dict_is_insufficient)
+statuses 为空：视为未经验证，一律不足。 ... ok
+test_statuses_not_provided_is_insufficient (test_core.TestMacroFailClosed.test_statuses_not_provided_is_insufficient)
+未传 statuses：状态未经验证，一律不足（不再按值降级）。 ... ok
+test_undefined_status_values_are_rejected (test_core.TestMacroFailClosed.test_undefined_status_values_are_rejected) ... ok
+test_unknown_status_is_rejected (test_core.TestMacroFailClosed.test_unknown_status_is_rejected) ... ok
 test_crypto_36h (test_core.TestStaleness.test_crypto_36h) ... ok
 test_holidays_exist (test_core.TestStaleness.test_holidays_exist) ... ok
 test_long_gap_is_stale (test_core.TestStaleness.test_long_gap_is_stale) ... ok
@@ -116,18 +125,32 @@ test_failed_request_recorded (test_provenance.TestProvenance.test_failed_request
 test_non_redistributable_no_raw (test_provenance.TestProvenance.test_non_redistributable_no_raw) ... ok
 test_sha256_deterministic (test_provenance.TestProvenance.test_sha256_deterministic) ... ok
 test_summarize_counts (test_provenance.TestProvenance.test_summarize_counts) ... ok
+test_delayed_indicators_have_label (test_quote_label.TestQuoteLabel.test_delayed_indicators_have_label) ... ok
+test_label_has_no_date (test_quote_label.TestQuoteLabel.test_label_has_no_date)
+标签仅描述报价性质，真实报价日期由 as_of 字段单独展示。 ... ok
+test_label_independent_of_status (test_quote_label.TestQuoteLabel.test_label_independent_of_status)
+标签与 status 分离：正常/延迟状态都保留报价性质标签，不混淆两概念。 ... ok
+test_no_false_realtime_claim (test_quote_label.TestQuoteLabel.test_no_false_realtime_claim)
+不做未经证实的“实时”标注；标签措辞明确为延迟、非实时可成交。 ... ok
+test_none_delayed_indicators_have_no_label (test_quote_label.TestQuoteLabel.test_none_delayed_indicators_have_no_label) ... ok
 test_append_and_keep_last (test_run_log.TestRunLog.test_append_and_keep_last)
 多次追加，且仅保留最近 keep_last 条。 ... ok
-test_early_trigger_negative_delay (test_run_log.TestRunLog.test_early_trigger_negative_delay)
-手动提前触发 -> 延迟为负，如实记录不裁剪为 0。 ... ok
+test_early_scheduled_trigger_negative_delay (test_run_log.TestRunLog.test_early_scheduled_trigger_negative_delay)
+定时提前触发 -> 延迟为负，如实记录不裁剪为 0。 ... ok
 test_failure_detection_status (test_run_log.TestRunLog.test_failure_detection_status)
-有失败源 -> status=fail；有逐指标失败但源级成功 -> partial。 ... ok
+有失败源 -> conclusion=fail；有逐指标失败但源级成功 -> partial。 ... ok
+test_manual_does_not_count_schedule_delay (test_run_log.TestRunLog.test_manual_does_not_count_schedule_delay)
+手动派发/本地手动：delay_minutes=null，不计入定时延迟统计。 ... ok
 test_no_fabricated_runs (test_run_log.TestRunLog.test_no_fabricated_runs)
 新日志仅含本次真实执行，不预填历史日期。 ... ok
-test_planned_time_and_delay (test_run_log.TestRunLog.test_planned_time_and_delay)
-计划 UTC 00:15；启动 00:20 -> 延迟 5 分钟。 ... ok
+test_planned_time_and_delay_scheduled (test_run_log.TestRunLog.test_planned_time_and_delay_scheduled)
+定时运行：计划 UTC 00:15，启动 00:20 -> 延迟 5 分钟。 ... ok
+test_required_eight_fields_present (test_run_log.TestRunLog.test_required_eight_fields_present)
+审计要求每条记录至少含 8 个字段，且取值合理。 ... ok
+test_trigger_type_mapping (test_run_log.TestRunLog.test_trigger_type_mapping)
+GITHUB_EVENT_NAME 到触发类型的映射互斥。 ... ok
 
 ----------------------------------------------------------------------
-Ran 65 tests in 3.515s
+Ran 79 tests in 3.516s
 
 OK

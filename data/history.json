@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated_at": "2026-11-23T23:15:32+09:00",
+  "updated_at": "2026-11-24T00:53:29+09:00",
   "series": {
     "dxy": [
       {
@@ -10,7 +10,7 @@
       },
       {
         "date": "2026-11-23",
-        "value": 104.097,
+        "value": 104.364,
         "source": "CNBC:.DXY"
       }
     ],
@@ -10026,11 +10026,6 @@
     ],
     "vix": [
       {
-        "date": "2025-05-06",
-        "value": 24.76,
-        "source": "FRED:VIXCLS"
-      },
-      {
         "date": "2025-05-07",
         "value": 23.55,
         "source": "FRED:VIXCLS"
@@ -12024,14 +12019,14 @@
         "date": "2026-11-19",
         "value": 28.44,
         "source": "FRED:VIXCLS"
+      },
+      {
+        "date": "2026-11-20",
+        "value": 35.89,
+        "source": "FRED:VIXCLS"
       }
     ],
     "hy_oas": [
-      {
-        "date": "2025-05-15",
-        "value": 3.2,
-        "source": "FRED:BAMLH0A0HYM2"
-      },
       {
         "date": "2025-05-16",
         "value": 3.16,
@@ -14026,14 +14021,14 @@
         "date": "2026-11-19",
         "value": 3.52,
         "source": "FRED:BAMLH0A0HYM2"
+      },
+      {
+        "date": "2026-11-20",
+        "value": 3.76,
+        "source": "FRED:BAMLH0A0HYM2"
       }
     ],
     "sp500": [
-      {
-        "date": "2025-04-22",
-        "value": 5287.76,
-        "source": "FRED:SP500"
-      },
       {
         "date": "2025-04-23",
         "value": 5375.86,
@@ -16027,15 +16022,15 @@
       {
         "date": "2026-11-20",
         "value": 6910.39,
+        "source": "FRED:SP500"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 7256.41,
         "source": "CNBC:.SPX"
       }
     ],
     "nasdaq100": [
-      {
-        "date": "2025-04-22",
-        "value": 18276.41,
-        "source": "FRED:NASDAQ100"
-      },
       {
         "date": "2025-04-23",
         "value": 18693.26,
@@ -18030,6 +18025,11 @@
         "date": "2026-11-20",
         "value": 25028.982,
         "source": "CNBC:.NDX"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 26785.178,
+        "source": "CNBC:.NDX"
       }
     ],
     "gold": [
@@ -18040,7 +18040,7 @@
       },
       {
         "date": "2026-11-23",
-        "value": 3656.5,
+        "value": 3676.0,
         "source": "CNBC:@GC.1"
       }
     ],
@@ -18052,7 +18052,7 @@
       },
       {
         "date": "2026-11-23",
-        "value": 82.13,
+        "value": 80.59,
         "source": "CNBC:@CL.1"
       }
     ],
@@ -18064,7 +18064,7 @@
       },
       {
         "date": "2026-11-23",
-        "value": 5.6265,
+        "value": 5.662,
         "source": "CNBC:@HG.1"
       }
     ],
@@ -18076,7 +18076,7 @@
       },
       {
         "date": "2026-11-23",
-        "value": 63341.2,
+        "value": 62794.42,
         "source": "CNBC:BTC="
       }
     ],
@@ -18088,7 +18088,7 @@
       },
       {
         "date": "2026-11-23",
-        "value": 1800.42,
+        "value": 1769.37,
         "source": "CNBC:ETH="
       }
     ],

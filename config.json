@@ -66,9 +66,9 @@
     {"id": "sp500",        "name": "标普500指数",          "group": "美股", "unit": "点",     "kind": "index",    "display": "index"},
     {"id": "nasdaq100",    "name": "纳斯达克100指数",      "group": "美股", "unit": "点",     "kind": "index",    "display": "index"},
 
-    {"id": "gold",         "name": "黄金 COMEX 近月期货",   "group": "大宗", "unit": "USD/oz",  "kind": "price",    "display": "price"},
-    {"id": "wti",          "name": "WTI NYMEX 近月期货",   "group": "大宗", "unit": "USD/bbl", "kind": "price",    "display": "price"},
-    {"id": "copper",       "name": "铜 COMEX 近月期货",     "group": "大宗", "unit": "USD/lb",  "kind": "price",    "display": "price"},
+    {"id": "gold",         "name": "黄金 COMEX 近月期货",   "group": "大宗", "unit": "USD/oz",  "kind": "price",    "display": "price", "quote_nature": "delayed_futures"},
+    {"id": "wti",          "name": "WTI NYMEX 近月期货",   "group": "大宗", "unit": "USD/bbl", "kind": "price",    "display": "price", "quote_nature": "delayed_futures"},
+    {"id": "copper",       "name": "铜 COMEX 近月期货",     "group": "大宗", "unit": "USD/lb",  "kind": "price",    "display": "price", "quote_nature": "delayed_futures"},
 
     {"id": "btc",          "name": "比特币 BTC 现货",      "group": "加密", "unit": "USD",     "kind": "crypto",   "display": "price"},
     {"id": "eth",          "name": "以太坊 ETH 现货",      "group": "加密", "unit": "USD",     "kind": "crypto",   "display": "price"},

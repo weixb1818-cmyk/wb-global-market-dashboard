@@ -29,7 +29,7 @@ sys.path.insert(0, str(ROOT))
 
 from core import (  # noqa: E402
     card_note, classify_macro, compute_changes, crosscheck_spread, fmt_change,
-    fmt_value, is_stale, load_config, to_bp,
+    fmt_value, is_stale, load_config, quote_label, to_bp,
 )
 from provenance import make_record, summarize  # noqa: E402
 
@@ -521,6 +521,7 @@ def build_snapshot(cfg: Dict[str, Any], fetched: Dict[str, List[Dict[str, Any]]]
             "as_of": as_of,
             "source": source_label or "未知",
             "status": status,
+            "quote_label": quote_label(ind_id, cfg, status),  # 延迟报价独立标签，与 status 分离
             "note": note,
             "observations": calc["observations"],
         }
@@ -601,31 +602,66 @@ def load_json_safe(path: Path) -> Dict[str, Any]:
         return {}
 
 
+def _trigger_type(env: Dict[str, str]) -> str:
+    """区分触发类型：定时调度 / GitHub 手动派发 / 本地手动。
+
+    审计 WB 第 4 项：三类不得混为一类。GitHub Actions 用 GITHUB_EVENT_NAME
+    区分（schedule / workflow_dispatch）；无该环境变量即为本地手动执行。
+    """
+    event = (env.get("GITHUB_EVENT_NAME") or "").strip().lower()
+    if event == "schedule":
+        return "scheduled"
+    if event == "workflow_dispatch":
+        return "manual_dispatch"
+    return "manual_local"
+
+
 def append_run_log(cfg: Dict[str, Any], started_utc: dt.datetime,
                    finished_utc: dt.datetime, failed_sources: List[str],
-                   failed_indicators: Dict[str, str], macro_state: str) -> Dict[str, Any]:
+                   failed_indicators: Dict[str, str], macro_state: str,
+                   env: Optional[Dict[str, str]] = None) -> Dict[str, Any]:
     """
-    追加式运行记录（P2）：计划时间、实际启动/完成、延迟分钟、状态与失败源。
+    追加式运行记录（P2 + 审计 WB 第 4 项）：每条至少含
+    run_id / trigger_type / started_at / completed_at / conclusion /
+    script_started / snapshot_generated / commit_sha。
+
     - 计划时间取当天 UTC 00:15（config.schedule.cron），与北京时间 08:15 对应。
-    - 延迟 = 实际启动 − 计划时间（分钟）；负数表示提前（如手动触发）。
-    - 保留最近 keep_last 条，防止文件无限增长。
-    - 不伪造历史运行：仅记录本次真实执行。
+    - **定时延迟仅对 scheduled 有效**：delay_minutes = 实际启动 − 计划时间；
+      手动运行（manual_dispatch / manual_local）不计入定时延迟统计，记为 null。
+    - conclusion：ok / partial / fail（脚本层执行结论）。
+    - script_started / snapshot_generated：本函数由脚本执行末尾调用，二者恒为 true；
+      workflow 层“脚本未启动即失败”的记录写入 github_actions_runs.json，不在本文件伪造。
+    - 保留最近 keep_last 条，不伪造历史运行。
     """
+    env = env if env is not None else dict(os.environ)
+    trigger = _trigger_type(env)
     planned = started_utc.replace(hour=0, minute=15, second=0, microsecond=0)
-    delay_min = round((started_utc - planned).total_seconds() / 60.0, 1)
-    status = "ok" if not failed_sources and not failed_indicators else (
+    if trigger == "scheduled":
+        delay_min: Optional[float] = round((started_utc - planned).total_seconds() / 60.0, 1)
+        delay_note = "定时运行：按当天 UTC 00:15 计划触发时间计算实际延迟"
+    else:
+        delay_min = None
+        delay_note = "手动运行：不计入定时任务延迟统计"
+    conclusion = "ok" if not failed_sources and not failed_indicators else (
         "partial" if not failed_sources else "fail")
     record = {
+        "run_id": env.get("GITHUB_RUN_ID") or f"local-{started_utc.strftime('%Y%m%dT%H%M%SZ')}",
+        "trigger_type": trigger,
+        "started_at": started_utc.isoformat(timespec="seconds"),
+        "completed_at": finished_utc.isoformat(timespec="seconds"),
+        "conclusion": conclusion,
+        "script_started": True,
+        "snapshot_generated": True,
+        "commit_sha": env.get("GITHUB_SHA") or "local",
         "planned_utc": planned.isoformat(timespec="seconds"),
-        "started_utc": started_utc.isoformat(timespec="seconds"),
-        "finished_utc": finished_utc.isoformat(timespec="seconds"),
         "delay_minutes": delay_min,
+        "delay_note": delay_note,
         "duration_seconds": round((finished_utc - started_utc).total_seconds(), 1),
-        "status": status,
+        "status": conclusion,  # 兼容旧字段名
         "macro_state": macro_state,
         "failed_sources": list(failed_sources),
         "failed_indicators": sorted(failed_indicators),
-        "trigger": os.environ.get("GITHUB_EVENT_NAME", "manual/local"),
+        "trigger": trigger,  # 兼容旧字段名
     }
     old = load_json_safe(RUN_LOG_PATH) if RUN_LOG_PATH.exists() else {}
     runs = old.get("runs", []) if isinstance(old.get("runs"), list) else []
@@ -634,7 +670,9 @@ def append_run_log(cfg: Dict[str, Any], started_utc: dt.datetime,
     runs = runs[-keep:]
     payload = {
         "schedule": cfg.get("schedule", {}),
-        "note": "仅记录真实发生的执行；GitHub 免费调度延迟数分钟属正常，非 SLA 违约",
+        "note": ("仅记录脚本真实发生的执行；script_started/snapshot_generated 恒为 true。"
+                 "workflow 解析失败等‘脚本未启动’记录见 verification/github_actions_runs.json。"
+                 "定时延迟仅对 scheduled 计算，手动运行不计入。"),
         "runs": runs,
     }
     _atomically_write(RUN_LOG_PATH, json.dumps(payload, ensure_ascii=False, indent=2) + "\n")
@@ -712,13 +750,16 @@ def main() -> int:
     LOG.info("快照已写入 %s；宏观状态=%s；失败源=%s",
              SNAPSHOT_PATH, snapshot["macro"]["state"], snapshot["failed_sources"])
 
-    # 追加式运行记录（P2）：计划/启动/完成时间、延迟、状态、失败源
+    # 追加式运行记录（P2 + 审计 WB 第 4 项）：完整字段 + 触发类型区分
     finished_utc = dt.datetime.now(dt.timezone.utc)
     run_rec = append_run_log(cfg, started_utc, finished_utc, failed_sources,
-                             failed_indicators, snapshot["macro"]["state"])
-    LOG.info("运行记录已追加：启动=%s 完成=%s 延迟=%.1f分钟 状态=%s",
-             run_rec["started_utc"], run_rec["finished_utc"],
-             run_rec["delay_minutes"], run_rec["status"])
+                             failed_indicators, snapshot["macro"]["state"],
+                             env=dict(os.environ))
+    delay_desc = (f"{run_rec['delay_minutes']:.1f}分钟"
+                  if run_rec["delay_minutes"] is not None else "不适用(手动)")
+    LOG.info("运行记录已追加：run_id=%s 触发=%s 启动=%s 完成=%s 延迟=%s 结论=%s",
+             run_rec["run_id"], run_rec["trigger_type"], run_rec["started_at"],
+             run_rec["completed_at"], delay_desc, run_rec["conclusion"])
     return 0
 
 
