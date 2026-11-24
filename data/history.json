@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated_at": "2026-11-24T00:53:29+09:00",
+  "updated_at": "2026-11-24T18:47:03+09:00",
   "series": {
     "dxy": [
       {
@@ -12,14 +12,14 @@
         "date": "2026-11-23",
         "value": 104.364,
         "source": "CNBC:.DXY"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 104.219,
+        "source": "CNBC:.DXY"
       }
     ],
     "us2y": [
-      {
-        "date": "2025-04-15",
-        "value": 3.84,
-        "source": "FRED:DGS2"
-      },
       {
         "date": "2025-04-16",
         "value": 3.77,
@@ -2014,14 +2014,14 @@
         "date": "2026-11-19",
         "value": 4.76,
         "source": "FRED:DGS2"
+      },
+      {
+        "date": "2026-11-20",
+        "value": 4.63,
+        "source": "FRED:DGS2"
       }
     ],
     "us10y": [
-      {
-        "date": "2025-04-15",
-        "value": 4.35,
-        "source": "FRED:DGS10"
-      },
       {
         "date": "2025-04-16",
         "value": 4.29,
@@ -4016,14 +4016,14 @@
         "date": "2026-11-19",
         "value": 5.04,
         "source": "FRED:DGS10"
+      },
+      {
+        "date": "2026-11-20",
+        "value": 4.92,
+        "source": "FRED:DGS10"
       }
     ],
     "us10y_real": [
-      {
-        "date": "2025-04-15",
-        "value": 2.16,
-        "source": "FRED:DFII10"
-      },
       {
         "date": "2025-04-16",
         "value": 2.12,
@@ -6018,14 +6018,14 @@
         "date": "2026-11-19",
         "value": 2.88,
         "source": "FRED:DFII10"
+      },
+      {
+        "date": "2026-11-20",
+        "value": 2.77,
+        "source": "FRED:DFII10"
       }
     ],
     "t10y2y": [
-      {
-        "date": "2025-04-16",
-        "value": 0.52,
-        "source": "FRED:T10Y2Y"
-      },
       {
         "date": "2025-04-17",
         "value": 0.53,
@@ -8020,14 +8020,14 @@
         "date": "2026-11-20",
         "value": 0.29,
         "source": "FRED:T10Y2Y"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 0.29,
+        "source": "FRED:T10Y2Y"
       }
     ],
     "t10y3m": [
-      {
-        "date": "2025-04-16",
-        "value": -0.04,
-        "source": "FRED:T10Y3M"
-      },
       {
         "date": "2025-04-17",
         "value": 0.0,
@@ -10021,6 +10021,11 @@
       {
         "date": "2026-11-20",
         "value": 0.6,
+        "source": "FRED:T10Y3M"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 0.55,
         "source": "FRED:T10Y3M"
       }
     ],
@@ -16026,7 +16031,7 @@
       },
       {
         "date": "2026-11-23",
-        "value": 7256.41,
+        "value": 7237.17,
         "source": "CNBC:.SPX"
       }
     ],
@@ -18028,7 +18033,7 @@
       },
       {
         "date": "2026-11-23",
-        "value": 26785.178,
+        "value": 26746.096,
         "source": "CNBC:.NDX"
       }
     ],
@@ -18042,6 +18047,11 @@
         "date": "2026-11-23",
         "value": 3676.0,
         "source": "CNBC:@GC.1"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 3619.0,
+        "source": "CNBC:@GC.1"
       }
     ],
     "wti": [
@@ -18053,6 +18063,11 @@
       {
         "date": "2026-11-23",
         "value": 80.59,
+        "source": "CNBC:@CL.1"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 80.11,
         "source": "CNBC:@CL.1"
       }
     ],
@@ -18066,6 +18081,11 @@
         "date": "2026-11-23",
         "value": 5.662,
         "source": "CNBC:@HG.1"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 5.454,
+        "source": "CNBC:@HG.1"
       }
     ],
     "btc": [
@@ -18078,6 +18098,11 @@
         "date": "2026-11-23",
         "value": 62794.42,
         "source": "CNBC:BTC="
+      },
+      {
+        "date": "2026-11-24",
+        "value": 60048.9,
+        "source": "CNBC:BTC="
       }
     ],
     "eth": [
@@ -18089,6 +18114,11 @@
       {
         "date": "2026-11-23",
         "value": 1769.37,
+        "source": "CNBC:ETH="
+      },
+      {
+        "date": "2026-11-24",
+        "value": 1686.86,
         "source": "CNBC:ETH="
       }
     ],
@@ -18227,6 +18257,11 @@
         "date": "2026-11-23",
         "value": 158.96367154,
         "source": "currency-api/jsDelivr"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 159.35994363,
+        "source": "currency-api/jsDelivr"
       }
     ],
     "usdcnh": [
@@ -18363,6 +18398,11 @@
       {
         "date": "2026-11-23",
         "value": 6.66837955,
+        "source": "currency-api/jsDelivr"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 6.66471916,
         "source": "currency-api/jsDelivr"
       }
     ]
