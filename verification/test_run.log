@@ -1,3 +1,11 @@
+test_empty_and_typo_status_show_unknown (test_browser_status.TestBrowserStatusMapping.test_empty_and_typo_status_show_unknown) ... ok
+test_known_status_texts (test_browser_status.TestBrowserStatusMapping.test_known_status_texts) ... ok
+test_undefined_status_never_shows_updated (test_browser_status.TestBrowserStatusMapping.test_undefined_status_never_shows_updated)
+核心断言：未定义(null)状态不显示"已更新"。 ... ok
+test_unknown_badge_uses_unknown_class (test_browser_status.TestBrowserStatusMapping.test_unknown_badge_uses_unknown_class)
+未知状态使用 unknown 样式类，不继承 ok 的绿标。 ... ok
+test_unknown_status_never_shows_updated (test_browser_status.TestBrowserStatusMapping.test_unknown_status_never_shows_updated)
+核心断言：unknown 状态不显示"已更新"。 ... ok
 test_curve_inversion (test_core.TestCardNotes.test_curve_inversion) ... ok
 test_curve_steepen_not_recovery (test_core.TestCardNotes.test_curve_steepen_not_recovery) ... ok
 test_fx_direction_cnh (test_core.TestCardNotes.test_fx_direction_cnh) ... ok
@@ -110,6 +118,17 @@ test_all_stale_inputs_force_insufficient (test_fault_isolation.TestMacroFailClos
 所有关键输入有值但状态全为 stale：宏观必须 fail-closed。 ... ok
 test_snapshot_does_not_backfill_system_date (test_fault_isolation.TestNoSystemDateBackfill.test_snapshot_does_not_backfill_system_date)
 端到端：CNBC 报价无 as_of 时，build_snapshot 绝不写入系统当天日期。 ... ok
+test_crosscheck_ignores_non_finite (test_finite_numbers.TestComputeFiniteGuard.test_crosscheck_ignores_non_finite) ... ok
+test_non_finite_observations_ignored_in_changes (test_finite_numbers.TestComputeFiniteGuard.test_non_finite_observations_ignored_in_changes) ... ok
+test_finite_values_accepted (test_finite_numbers.TestIsFiniteNumber.test_finite_values_accepted) ... ok
+test_non_finite_rejected (test_finite_numbers.TestIsFiniteNumber.test_non_finite_rejected) ... ok
+test_all_finite_ok_still_classifies (test_finite_numbers.TestMacroFiniteGate.test_all_finite_ok_still_classifies)
+有限数值且状态 ok 时仍正常分类，证明闸门不改变阈值与公式。 ... ok
+test_inf_blocked_even_with_ok_status (test_finite_numbers.TestMacroFiniteGate.test_inf_blocked_even_with_ok_status) ... ok
+test_non_finite_string_blocked (test_finite_numbers.TestMacroFiniteGate.test_non_finite_string_blocked) ... ok
+test_non_finite_observations_dropped (test_finite_numbers.TestMergeSeriesFinite.test_non_finite_observations_dropped) ... ok
+test_finite_values_still_parse (test_finite_numbers.TestNumParsingFinite.test_finite_values_still_parse) ... ok
+test_nan_and_inf_return_none (test_finite_numbers.TestNumParsingFinite.test_nan_and_inf_return_none) ... ok
 test_change20_transitions_at_exactly_21 (test_history_threshold.TestHistoryThreshold.test_change20_transitions_at_exactly_21)
 恰好 20 点 -> None；第 21 点到达 -> 有效值。 ... ok
 test_insufficient_does_not_reuse_stale_value (test_history_threshold.TestHistoryThreshold.test_insufficient_does_not_reuse_stale_value)
@@ -151,6 +170,6 @@ test_trigger_type_mapping (test_run_log.TestRunLog.test_trigger_type_mapping)
 GITHUB_EVENT_NAME 到触发类型的映射互斥。 ... ok
 
 ----------------------------------------------------------------------
-Ran 79 tests in 3.516s
+Ran 94 tests in 4.514s
 
 OK

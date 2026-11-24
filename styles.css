@@ -120,6 +120,7 @@ html, body {
 .badge.stale { background: var(--warn-bg); color: var(--warn-ink); }
 .badge.missing { background: #eef1f5; color: #64748b; }
 .badge.error { background: #fdecea; color: #a33228; }
+.badge.unknown { background: #eef1f5; color: #475569; }
 /* 数据状态 badge 与报价性质标签竖排右对齐，二者语义独立 */
 .head-tags { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
 .quote-tag {

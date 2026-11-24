@@ -21,9 +21,19 @@
 
 ## 三、测试与快照
 
-- 单元测试：**Ran 79 tests ... OK**（原 65 + 本轮新增 14：fail-closed 6 + 延迟标签 5 + 运行记录 3），见 `verification/test_run.log`。
+- 单元测试：**Ran 94 tests ... OK**（原 65 + 上一轮新增 14：fail-closed 6 + 延迟标签 5 + 运行记录 3 + 本轮第三轮技术修正新增 15：浏览器状态映射 5 + 数值有限性 10），见 `verification/test_run.log`。
 - 快照：真实数据更新成功；宏观 `insufficient`（DXY 等 6 项历史样本不足，未补造）；`crosscheck` 两组同日 0.00bp。
 - 17 项指标定义、宏观阈值、页面布局均未变；仅新增卡片内一个延迟报价标签（审计要求）。
+
+## 三之一、审计第三轮反馈 — 两个小型技术修正 + 文档修正（本轮完成）
+
+审计第三轮对上一轮三项整改**全部验收通过**（综合 85/100），仅要求补齐两个防御性细节与运行记录文档口径，均已落实，**未新增第 18 项指标、未改指标定义/阈值/页面、未购数据、未回填历史、未重跑更新脚本**（快照与日志批次保持一致）。
+
+| 审计要求 | 落实 | 证据 |
+|---|---|---|
+| 前端未知状态必须严格映射，不得用 `\|\| "已更新"` 兜底 | `app.js` 改为 `statusText()`/`statusClass()` 严格映射：ok=已更新、stale=数据延迟、missing=数据缺失、error=更新失败，**其余（unknown/未定义/空串/拼错）一律"状态未知，未验证"**；badge 样式类同样严格归为 unknown，不继承 ok 绿标 | `app.js`；`styles.css:.badge.unknown`；`tests/test_browser_status.py`（5 项，Playwright 渲染真实 app.js，断言 unknown/未定义不显示"已更新"） |
+| 数值解析/历史合并/宏观分类入口增加 `math.isfinite`，排除 ±Inf | `core.is_finite_number()` 统一闸门；`_num()`、`merge_series()`、`classify_macro()`（即使 status=ok 也过闸门）三处必检点全部落实；并对 `compute_changes()`/`crosscheck_spread()` 加固。**不改变计算公式与宏观阈值** | `core.py`；`scripts/update_data.py`；`tests/test_finite_numbers.py`（10 项） |
+| 运行记录文档明确两文件口径、failure 只计 workflow、早期记录不回填、修正"共5次"、漏跑只看 scheduled | `verification/run_reliability.md` 新增"记录口径与数量澄清"：run_log.json=实际执行脚本（6 条，5 早期原始结构+1 完整）、github_actions_runs.json=全部 workflow（6 条，5 success+1 failure）；解析失败只计 workflow 不补造；早期保留原始结构；统一按实际 6 条披露，不再用"共5次"；漏跑仅以 `scheduled` 计划日比对，手动不算定时成功 | `verification/run_reliability.md`；`tests/test_run_log.py` |
 
 ## 四、特别声明
 

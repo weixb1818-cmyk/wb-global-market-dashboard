@@ -10,9 +10,23 @@
     "加密": "现货口径，24×7 市场",
     "外汇": "1 美元折合外币"
   };
+  // 严格状态映射（审计第三轮技术修正 1）：仅四个已知状态给出确定文案。
+  // 任何其它值（unknown/未定义/空串/拼写错误）一律显示“状态未知，未验证”，
+  // 绝不再用 `|| "已更新"` 兜底——否则宏观分类已 fail-closed 阻断时，
+  // 页面却可能把一个未经验证的状态显示成“已更新”，造成误读。
   var STATUS_TEXT = {
     ok: "已更新", stale: "数据延迟", missing: "数据缺失", error: "更新失败"
   };
+  var STATUS_UNKNOWN_TEXT = "状态未知，未验证";
+  function statusText(status) {
+    return Object.prototype.hasOwnProperty.call(STATUS_TEXT, status)
+      ? STATUS_TEXT[status]
+      : STATUS_UNKNOWN_TEXT;
+  }
+  // badge 样式类同样严格映射，未知状态统一归为 unknown，避免未定义值被当成 ok 的绿标。
+  function statusClass(status) {
+    return Object.prototype.hasOwnProperty.call(STATUS_TEXT, status) ? status : "unknown";
+  }
 
   function el(tag, cls, text) {
     var n = document.createElement(tag);
@@ -57,8 +71,8 @@
     var card = el("article", "card");
     var head = el("div", "card-head");
     head.appendChild(el("div", "card-name", item.name));
-    var badge = el("span", "badge " + (item.status || "ok"),
-      STATUS_TEXT[item.status] || "已更新");
+    var badge = el("span", "badge " + statusClass(item.status),
+      statusText(item.status));
     // 右对齐标签容器：数据状态 badge 与报价性质标签竖排，互不影响。
     var tags = el("div", "head-tags");
     tags.appendChild(badge);

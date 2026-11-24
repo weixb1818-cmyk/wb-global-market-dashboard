@@ -48,10 +48,26 @@
 - 两层的 `run_id`（`GITHUB_RUN_ID`）可对应同一 workflow run；本地手动运行只在脚本层出现。
 - 早期（加入 run_log 字段前）的脚本运行缺少新字段，属历史记录，**不回填、不补造**。
 
+### 记录口径与数量澄清（审计第三轮文档修正）
+
+为避免"共 5 次运行"与实际 6 条记录被误读，明确如下口径——**两类文件各 6 条，含义不同，不可相加、不可互相替代**：
+
+| 文件 | 记录对象 | 当前条数 | 口径 |
+|---|---|---|---|
+| `data/run_log.json` | **实际执行了取数脚本**的运行（script_started 恒 true） | 6 条 | 其中 5 条为加入新字段前的早期记录（保留原始字段结构，不回填新字段），1 条为本轮带完整 8 字段的本地运行 |
+| `verification/github_actions_runs.json` | **全部 workflow 运行**（含脚本未启动即失败者） | 6 条 | 5 success + 1 failure（该 failure 在 YAML 解析阶段失败、脚本未启动） |
+
+- 早期曾被概括为"共 5 次运行"，指的是当时**脚本层连续成功的 5 条早期记录**；同期 workflow 层还有 1 条解析失败（脚本未启动）。按审计要求，现统一按各自文件的**实际条数（均为 6 条）**披露，不再使用"共 5 次"这一易混口径。
+- `github_actions_runs.json` 中的 failure（run `45190822884`）**只计入 workflow 记录**，因脚本未启动，`run_log.json` 中无对应记录，也不补造。
+- 早期 5 条 `run_log.json` 记录保留原始字段（`started_utc`/`finished_utc` 等），**不回填**新字段（`run_id`/`trigger_type` 等）；新字段仅出现在其后的新记录中。
+
 ## 三、漏跑 / 失败发现机制
 
 - **失败发现**：任一源级失败 → `status=fail`；仅逐指标失败 → `status=partial`；全部成功 → `ok`。快照中 `failed_sources`/`failed_indicators` 同步记录。
-- **漏跑发现**：`run_log.json` 每条记录带 `planned_utc`；按日比对即可发现缺失日期。但未实现主动告警（受免费条件与零成本约束，不接入付费通知服务）。给出复核命令（见第五节），人工/审计可随时核对。
+- **漏跑发现（严格口径）**：以 `run_log.json` 中 `trigger_type == "scheduled"` 的记录为依据，按 `planned_utc` 逐日比对计划触发日，缺失即为漏跑。
+  - **手动运行不计入**：`manual_dispatch` / `manual_local` 即使某日成功，也**不得**视为当天定时任务成功；某日只有手动记录而无 `scheduled` 记录，仍按漏跑处理。
+  - 该口径与延迟统计一致：只有 `scheduled` 计算 `delay_minutes`，手动的 `delay_minutes=null`。
+  - 未实现主动告警（受免费条件与零成本约束，不接入付费通知服务）。给出复核命令（见第五节），人工/审计可随时核对。
 - **改进已做**：workflow 的 `git add` 已纳入 `data/provenance.json`、`data/run_log.json`，确保溯源文件随每日提交入库（此前遗漏，本轮修复）。`data/raw/`（原始响应）按合规要求仅本地留存、不提交公开仓库。
 
 ## 四、真实运行记录（全部，未伪造）
@@ -88,6 +104,9 @@ python3 -c "import json; d=json.load(open('data/run_log.json')); [print(r['run_i
 
 # 仅统计定时运行的真实延迟（手动运行 delay_minutes=null，自动排除）
 python3 -c "import json; d=json.load(open('data/run_log.json')); print([(r['started_at'],r['delay_minutes']) for r in d['runs'] if r['trigger_type']=='scheduled'])"
+
+# 漏跑核对：只看 scheduled 触发的计划日，手动运行不算定时任务成功
+python3 -c "import json; d=json.load(open('data/run_log.json')); print(sorted({r['planned_utc'][:10] for r in d['runs'] if r.get('trigger_type')=='scheduled'}))"
 
 # 导出 GitHub Actions 真实运行记录（需 token）
 curl -sS -H "Authorization: token $GITHUB_TOKEN" \

@@ -16,7 +16,7 @@
   git clone https://github.com/weixb1818-cmyk/wb-global-market-dashboard.git
   cd wb-global-market-dashboard
   python3 -m pip install -r requirements.txt
-  python3 -m unittest discover -s tests -v     # 复现全部单元测试（79 项）
+  python3 -m unittest discover -s tests -v     # 复现全部单元测试（94 项）
   ```
 - 四个核心文件免登录直读（`<REF>` 为仓库当前 commit SHA，见仓库首页；亦可用 `main`）：
   - `core.py`：`https://raw.githubusercontent.com/weixb1818-cmyk/wb-global-market-dashboard/main/core.py`
@@ -196,7 +196,7 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 
 ---
 
-## 六、测试覆盖（`tests/` 下 7 个测试文件，共 79 项全通过）
+## 六、测试覆盖（`tests/` 下 9 个测试文件，共 94 项全通过）
 
 1. 17 指标名称与单位完整且正确；配置中无就业/ISM/CPI 等越界指标
 2. 10Y-2Y 正负 bp 计算；HY OAS 3.20% → 320bp；变化不混淆 `%` 与 `bp`
@@ -234,7 +234,12 @@ BTC/ETH 为 24×7 市场：`is_stale()` 对 `kind=crypto` 采用 **36 小时**�
 22. 延迟报价独立标签：黄金/WTI/铜有「延迟报价·非实时可成交价」标签、非商品无标签、标签与 status 独立、标签不含日期、不标"实时"
 23. 运行记录：8 必含字段齐全、三类触发互斥映射、定时延迟仅 scheduled 计算/手动 null 不计入、conclusion 结论
 
-运行方式：`python3 -m unittest discover -s tests -v`（当前 79 项全通过，见 `verification/test_run.log`）
+**审计第三轮技术修正新增（`test_browser_status.py` / `test_finite_numbers.py`，共 15 项）**：
+
+24. 前端状态严格映射（Playwright 浏览器测试，渲染真实 app.js）：ok/stale/missing/error 文案正确；unknown、未定义、空串、大小写拼错一律显示"状态未知，未验证"，绝不显示"已更新"；未知状态使用 unknown 样式类不继承 ok 绿标
+25. 数值有限性闸门：`is_finite_number` 排除 NaN/±Inf/非数值；`_num` 解析、`merge_series` 历史合并、`classify_macro` 入口（即使 status=ok）三处均拦截非有限值；计算层 `compute_changes`/`crosscheck_spread` 加固；有限值仍按原公式/阈值正常计算
+
+运行方式：`python3 -m unittest discover -s tests -v`（当前 94 项全通过，见 `verification/test_run.log`）；浏览器测试单独复现：`python3 tests/test_browser_status.py`
 
 ---
 

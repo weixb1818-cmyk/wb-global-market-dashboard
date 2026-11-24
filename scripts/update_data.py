@@ -29,7 +29,7 @@ sys.path.insert(0, str(ROOT))
 
 from core import (  # noqa: E402
     card_note, classify_macro, compute_changes, crosscheck_spread, fmt_change,
-    fmt_value, is_stale, load_config, quote_label, to_bp,
+    fmt_value, is_finite_number, is_stale, load_config, quote_label, to_bp,
 )
 from provenance import make_record, summarize  # noqa: E402
 
@@ -130,7 +130,8 @@ def _num(text: Any) -> Optional[float]:
         v = float(s)
     except ValueError:
         return None
-    return v if v == v else None  # 排除 NaN
+    # 审计第三轮技术修正 2：统一有限性闸门，排除 NaN 与 ±Inf。
+    return v if is_finite_number(v) else None
 
 
 def _atomically_write(path: Path, content: str) -> None:
@@ -376,6 +377,10 @@ def merge_series(old: List[Dict[str, Any]], new: List[Dict[str, Any]]) -> List[D
     mapping: Dict[str, Dict[str, Any]] = {}
     for obs in list(old or []) + list(new or []):
         if not obs or obs.get("value") is None or not obs.get("date"):
+            continue
+        # 审计第三轮技术修正 2：历史合并同样过有限性闸门，
+        # 非有限数值（NaN/±Inf）不得进入历史序列或参与任何计算。
+        if not is_finite_number(obs["value"]):
             continue
         try:
             dt.date.fromisoformat(obs["date"])

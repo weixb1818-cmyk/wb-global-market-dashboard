@@ -6,10 +6,26 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import math
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence
 
 ROOT = Path(__file__).resolve().parent
+
+
+def is_finite_number(value: Any) -> bool:
+    """是否为可参与计算的有限实数（审计第三轮技术修正 2）。
+
+    明确排除 None、布尔、字符串、NaN 与正负 Infinity；只有能安全转为
+    float 且 math.isfinite 为真者才返回 True。用于数值解析、历史合并与
+    宏观分类入口的统一有限性闸门，非有限数值一律不得参与指标计算或分类。
+    """
+    if value is None or isinstance(value, bool):
+        return False
+    try:
+        return math.isfinite(float(value))
+    except (TypeError, ValueError, OverflowError):
+        return False
 
 
 def load_config(path: Optional[str | Path] = None) -> Dict[str, Any]:
@@ -65,7 +81,7 @@ def crosscheck_spread(derived: Sequence[Dict[str, Any]],
             if not o:
                 continue
             d, v = o.get("date"), o.get("value")
-            if d and v is not None:
+            if d and is_finite_number(v):
                 idx[str(d)] = float(v)
         return idx
 
@@ -120,7 +136,8 @@ def compute_changes(
     - change_20：最近 window 个'有效观测间隔'的变化，需要 window+1 个观测点；不足返回 None。
     返回中不含任何模拟或填充值。
     """
-    pts = [p for p in series if p.get("value") is not None]
+    # 仅接受有限数值观测：非有限值（NaN/±Inf）不得参与变化计算。
+    pts = [p for p in series if is_finite_number(p.get("value"))]
     pts = sorted(pts, key=lambda p: p["date"])
     if not pts:
         return {"value": None, "as_of": None, "change_1": None,
@@ -272,9 +289,11 @@ def classify_macro(inputs: Dict[str, Optional[float]],
             "missing": list(REQUIRED_MACRO_KEYS),
         }
     # 白名单：只认严格字符串 'ok'；未知/空串/None/其它值一律阻断。
+    # 审计第三轮技术修正 2：状态为 ok 也仍须通过有限性闸门，
+    # NaN / ±Inf 等非有限数值不得进入宏观分类（视为不可用）。
     missing = []
     for k in REQUIRED_MACRO_KEYS:
-        if inputs.get(k) is None:
+        if not is_finite_number(inputs.get(k)):
             missing.append(k)
         elif statuses.get(k) != "ok":
             missing.append(k)
