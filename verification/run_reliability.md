@@ -70,6 +70,43 @@
   - 未实现主动告警（受免费条件与零成本约束，不接入付费通知服务）。给出复核命令（见第五节），人工/审计可随时核对。
 - **改进已做**：workflow 的 `git add` 已纳入 `data/provenance.json`、`data/run_log.json`，确保溯源文件随每日提交入库（此前遗漏，本轮修复）。`data/raw/`（原始响应）按合规要求仅本地留存、不提交公开仓库。
 
+## 三之一、定时运行大延迟根因排查（2026-11-25）
+
+审计关注到定时运行延迟达数小时，本节点给出完整排查与结论，数据均来自 GitHub Actions API 与脚本自身记录，未推测、未补造。
+
+### 现象（三次 scheduled 运行，延迟逐日增大）
+
+| Run ID | 计划(UTC) | 实际启动(UTC) | 延迟 | 作业时长 | 结论 |
+|---|---|---|---|---|---|
+| 44995019830 | 00:15 | 11-22 06:43:35 | 389 min | 19 秒 | success |
+| 45131890988 | 00:15 | 11-23 07:32:49 | 438 min | 18 秒 | success |
+| 45368417711 | 00:15 | 11-24 09:46:47 | 572 min | 21 秒 | success |
+
+### 排查过程与排除项
+
+1. **cron 配置**：本地与远端 `.github/workflows/update.yml` 均为 `15 0 * * *`（UTC 00:15），已错开整点，配置正确、一致。
+2. **作业本身是否卡住**：三次作业实际时长仅 18/19/21 秒，**排除**脚本执行慢或挂起。
+3. **GitHub 侧排队延迟**：API 的 `created_at` 与 `run_started_at` **完全相等**（差 0 秒），**排除** job 进入执行队列后等待 runner 的排队延迟。
+4. **并发组阻塞**：`concurrency.group=daily-snapshot, cancel-in-progress=false`，但单次运行仅约 20 秒，不存在长时间占用；**排除**。
+5. **本地时钟错误**：`run_log.json` 由脚本在执行时真实写入，`planned_utc=00:15`、`started_at=09:46:58` 与 API 的 `created_at=09:46:47` 吻合；**排除**本地时钟或记录口径问题。
+
+### 根因结论
+
+延迟发生在 **GitHub 调度器发出 schedule 事件之前**：`created_at`（= GitHub 创建这次 run 的时刻）本身就是 06:43 / 07:32 / 09:46，而非 00:15。即 GitHub 免费层共享调度器**没有在计划时刻派发该事件**，而是数小时后才触发；一旦触发，job 立即启动（排队 0 秒）、约 20 秒完成。
+
+这与 GitHub 官方说明一致（[Events that trigger workflows#schedule](https://docs.github.com/en/actions/writing-workflows/choosing-when-your-workflow-runs/events-that-trigger-workflows#schedule)）：
+
+> The `schedule` event can be delayed during periods of high loads of GitHub Actions workflow runs. High load times include the start of every hour. If the load is sufficiently high enough, some queued jobs may be dropped. To decrease the chance of delay, schedule your workflow to run at a different time of the hour.
+
+即：schedule 事件在高负载期会被延迟甚至丢弃,官方仅承诺"尽可能"、非 SLA。本仓库 cron 已错开整点（00:15），但仍被延迟数小时,属于免费共享调度资源紧张所致,**不是本项目代码、配置或数据链路的缺陷**。
+
+### 影响与边界
+
+- **数据真实性不受影响**：每次被延迟触发后,脚本都真实取数、生成新快照、无失败源,历史观测正常累积（DXY 等从 2 → 3）。
+- **时效性受影响**：快照实际发布时间不固定在 08:15（北京）,可能推迟数小时；面板各卡 `as_of` 仍标注真实行情日期,`data_note` 明示"非同一时刻实时行情"。
+- **不伪造、不补偿**：延迟照实记录于 `run_log.json`；未因延迟手动补跑或回填记录（审计明确禁止）。
+- **可选缓解（未实施，需审计批准）**：把 cron 改到更冷门的分钟（如 `17 3 * * *`）以降低撞车概率；但这属于调整调度策略、且免费层无法根除延迟,本阶段按"其他工作保持冻结"原则不擅自更改。
+
 ## 四、真实运行记录（全部，未伪造）
 
 数据源：GitHub Actions API，原始响应固化于 `verification/github_actions_runs.json`。
