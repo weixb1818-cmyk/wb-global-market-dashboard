@@ -621,6 +621,26 @@ def _trigger_type(env: Dict[str, str]) -> str:
     return "manual_local"
 
 
+def _planned_from_config(cfg: Dict[str, Any], started_utc: dt.datetime) -> dt.datetime:
+    """从 config.schedule.cron 解析当天计划触发时刻（UTC）。
+
+    cron 为标准 5 段（分 时 日 月 周），取前两段作为分钟与小时。计划时刻
+    只认 config 这一处数据源，避免 workflow cron 与脚本硬编码不一致导致延迟
+    计算错误。解析失败时回退到历史时点 UTC 00:15，保证延迟计算有确定基准、
+    不静默为空（fail-safe）。
+    """
+    cron = str(cfg.get("schedule", {}).get("cron", "")).split()
+    minute, hour = 15, 0  # 回退基准：历史时点 UTC 00:15
+    try:
+        if len(cron) >= 2:
+            m, h = int(cron[0]), int(cron[1])
+            if 0 <= m <= 59 and 0 <= h <= 23:
+                minute, hour = m, h
+    except (ValueError, TypeError):
+        pass
+    return started_utc.replace(hour=hour, minute=minute, second=0, microsecond=0)
+
+
 def append_run_log(cfg: Dict[str, Any], started_utc: dt.datetime,
                    finished_utc: dt.datetime, failed_sources: List[str],
                    failed_indicators: Dict[str, str], macro_state: str,
@@ -630,7 +650,8 @@ def append_run_log(cfg: Dict[str, Any], started_utc: dt.datetime,
     run_id / trigger_type / started_at / completed_at / conclusion /
     script_started / snapshot_generated / commit_sha。
 
-    - 计划时间取当天 UTC 00:15（config.schedule.cron），与北京时间 08:15 对应。
+    - 计划时间由 config.schedule.cron 解析（当前 UTC 02:17 = 北京时间 10:17）；
+      改动 cron 时点只需改 config 与 workflow，脚本自动跟随，不再硬编码。
     - **定时延迟仅对 scheduled 有效**：delay_minutes = 实际启动 − 计划时间；
       手动运行（manual_dispatch / manual_local）不计入定时延迟统计，记为 null。
     - conclusion：ok / partial / fail（脚本层执行结论）。
@@ -640,10 +661,11 @@ def append_run_log(cfg: Dict[str, Any], started_utc: dt.datetime,
     """
     env = env if env is not None else dict(os.environ)
     trigger = _trigger_type(env)
-    planned = started_utc.replace(hour=0, minute=15, second=0, microsecond=0)
+    planned = _planned_from_config(cfg, started_utc)
     if trigger == "scheduled":
         delay_min: Optional[float] = round((started_utc - planned).total_seconds() / 60.0, 1)
-        delay_note = "定时运行：按当天 UTC 00:15 计划触发时间计算实际延迟"
+        delay_note = (f"定时运行：按当天 UTC {planned.hour:02d}:{planned.minute:02d} "
+                      "计划触发时间计算实际延迟")
     else:
         delay_min = None
         delay_note = "手动运行：不计入定时任务延迟统计"

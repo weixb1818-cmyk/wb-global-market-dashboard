@@ -162,14 +162,16 @@ test_manual_does_not_count_schedule_delay (test_run_log.TestRunLog.test_manual_d
 手动派发/本地手动：delay_minutes=null，不计入定时延迟统计。 ... ok
 test_no_fabricated_runs (test_run_log.TestRunLog.test_no_fabricated_runs)
 新日志仅含本次真实执行，不预填历史日期。 ... ok
+test_planned_follows_config_cron_not_hardcoded (test_run_log.TestRunLog.test_planned_follows_config_cron_not_hardcoded)
+计划时刻由 config.schedule.cron 解析：改 cron 即跟随，非硬编码。 ... ok
 test_planned_time_and_delay_scheduled (test_run_log.TestRunLog.test_planned_time_and_delay_scheduled)
-定时运行：计划 UTC 00:15，启动 00:20 -> 延迟 5 分钟。 ... ok
+定时运行：计划 UTC 02:17（北京时间 10:17），启动 02:22 -> 延迟 5 分钟。 ... ok
 test_required_eight_fields_present (test_run_log.TestRunLog.test_required_eight_fields_present)
 审计要求每条记录至少含 8 个字段，且取值合理。 ... ok
 test_trigger_type_mapping (test_run_log.TestRunLog.test_trigger_type_mapping)
 GITHUB_EVENT_NAME 到触发类型的映射互斥。 ... ok
 
 ----------------------------------------------------------------------
-Ran 94 tests in 4.514s
+Ran 95 tests in 4.555s
 
 OK

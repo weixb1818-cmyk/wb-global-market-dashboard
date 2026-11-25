@@ -8,7 +8,7 @@
 
 - 文件：`test_run.log`
 - 命令：`python3 -m unittest discover -s tests -v`
-- 结果：**Ran 94 tests ... OK**（原 65 项 + WB 下一轮整改新增 14 项 + 审计第三轮技术修正新增 15 项）
+- 结果：**Ran 95 tests ... OK**（原 65 项 + WB 下一轮整改新增 14 项 + 审计第三轮技术修正新增 15 项 + 调度时点调整新增 1 项）
 - 新增项涵盖：CNBC 合法/无/非法时间戳解析、无/非法时间戳报价进 failed、端到端不回填系统日期，以及两项可选测试（FRED 单序列失败隔离、宏观全 stale fail-closed）。
 - 下一阶段新增 14 项：利差同日交叉验证（7）、21 观测达标（5）、审计溯源（5）、运行记录（5）——上一阶段共新增 22 项（43→65）。
 - WB 下一轮整改新增 14 项（65→79）：宏观 fail-closed 严格白名单（6）、延迟报价独立标签（5）、运行记录触发类型/8 字段/手动不计延迟（3）。
@@ -42,7 +42,7 @@
 
 ## 5. 自动更新工作流
 
-- `.github/workflows/update.yml`：每日 UTC 00:15（东京 09:15）定时运行，并支持 `workflow_dispatch` 手动触发；`permissions.contents: write`；步骤为 检出 → 装依赖 → 跑测试 → 取数 → 提交 `data/`。
+- `.github/workflows/update.yml`：每日 UTC 02:17（北京时间 10:17 / 东京 11:17）定时运行，并支持 `workflow_dispatch` 手动触发；`permissions.contents: write`；步骤为 检出 → 装依赖 → 跑测试 → 取数 → 提交 `data/`。计划时刻由 `config.schedule.cron` 单一数据源解析，脚本不硬编码。
 - Actions 运行记录见仓库 Actions 标签页；最近一次手动触发的 run ID 在交接说明中给出。
 
 ## 6. 终轮（CNBC 时间戳边界）复核点

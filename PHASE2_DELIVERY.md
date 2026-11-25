@@ -12,7 +12,7 @@
 | 3 | 商品连续合约与利差核验 | `research/commodity_contracts.md` + 快照 `crosscheck` | ✅ |
 | 4 | 宏观规则历史案例与误判分析 | `research/macro_case_study.md` + `scripts/macro_case_study.py` | ✅ |
 | 5 | 每日更新与异常处理记录 | `verification/run_reliability.md` + `data/run_log.json` | ✅（含边界说明） |
-| 6 | 自动测试结果及未解决限制 | `verification/test_run.log`（94 项）+ 本文档 | ✅ |
+| 6 | 自动测试结果及未解决限制 | `verification/test_run.log`（95 项）+ 本文档 | ✅ |
 | 7 | 数据来源严谨性证据 | `research/*` + `data/provenance.json`（原文仅本地留存，不公开） | ✅ |
 
 ## 一、P0 提高宏观判断可用性
@@ -46,7 +46,7 @@
 
 ## 五、P2 更新可靠性
 
-- 计划时间北京时间 08:15（cron UTC 00:15），workflow 记录计划/启动/完成时刻。
+- 计划时间北京时间 10:17（cron UTC 02:17，由原 00:15 调整以避开高峰），workflow 记录计划/启动/完成时刻。
 - `data/run_log.json` 追加式记录延迟、时长、状态、失败源；失败/漏跑可逐日核对。
 - 修复 workflow 遗漏：溯源文件纳入每日 `git add`。
 - **真实记录**：6 次 Actions 运行（11-22、11-23 两天；5 success + 1 failure），固化于 `verification/github_actions_runs.json`。其中 failure（`45190822884`）为本阶段首次提交触发、因 workflow YAML 语法错误在解析阶段失败，已修复并以 `45192190028` success 闭环；详见 `verification/run_reliability.md`。当前快照与该 success run 同批次，日志见 `verification/update_run.log`（原始步骤日志 `actions_run_45192190028.log`）。
@@ -83,7 +83,7 @@
   - 研究文档：`research/history_feasibility.md`、`commodity_contracts.md`、`macro_case_study.md`
   - 代码：`core.py`（crosscheck_spread）、`scripts/update_data.py`（交叉验证 + 溯源 + 运行记录）、`scripts/macro_case_study.py`、`provenance.py`
   - 配置：`config.json`（crosscheck 阈值、schedule、run_log）、`requirements.txt`（锁定版本）
-  - 测试：`tests/test_crosscheck.py`、`test_history_threshold.py`、`test_provenance.py`、`test_run_log.py`、`test_quote_label.py`、`test_browser_status.py`、`test_finite_numbers.py`（共 94 项；含 WB 下一轮整改 fail-closed/延迟标签测试与审计第三轮浏览器状态映射/数值有限性测试）
+  - 测试：`tests/test_crosscheck.py`、`test_history_threshold.py`、`test_provenance.py`、`test_run_log.py`、`test_quote_label.py`、`test_browser_status.py`、`test_finite_numbers.py`（共 95 项；含 WB 下一轮整改 fail-closed/延迟标签测试、审计第三轮浏览器状态映射/数值有限性测试，以及调度时点跟随 config 测试）
   - 数据：`data/snapshot.json`（含 crosscheck）、`data/provenance.json`、`data/run_log.json`（`data/raw/fred/` 原始响应仅本地留存，不提交）
   - 工作流：`.github/workflows/update.yml`（时间打点 + 溯源文件入库）
   - 证据：`verification/*`（test_run.log、update_run.log、actions_run_45192190028.log、macro_case_study.log、github_actions_runs.json、run_reliability.md）

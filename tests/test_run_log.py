@@ -6,6 +6,7 @@ manual_dispatch / manual_local）、手动不计入定时延迟、失败检测�
 运行：python3 -m unittest discover -s tests -v
 """
 import datetime as dt
+import json
 import sys
 import tempfile
 import unittest
@@ -30,28 +31,43 @@ class TestRunLog(unittest.TestCase):
         ud.RUN_LOG_PATH = _ORIGINAL_PATH
 
     def test_planned_time_and_delay_scheduled(self):
-        """定时运行：计划 UTC 00:15，启动 00:20 -> 延迟 5 分钟。"""
-        started = dt.datetime(2026, 11, 23, 0, 20, tzinfo=dt.timezone.utc)
-        finished = dt.datetime(2026, 11, 23, 0, 20, 30, tzinfo=dt.timezone.utc)
+        """定时运行：计划 UTC 02:17（北京时间 10:17），启动 02:22 -> 延迟 5 分钟。"""
+        started = dt.datetime(2026, 11, 23, 2, 22, tzinfo=dt.timezone.utc)
+        finished = dt.datetime(2026, 11, 23, 2, 22, 30, tzinfo=dt.timezone.utc)
         with tempfile.TemporaryDirectory() as td:
             ud.RUN_LOG_PATH = Path(td) / "run_log.json"
             rec = ud.append_run_log(CFG, started, finished, [], {}, "insufficient",
                                     env=SCHEDULED_ENV)
-        self.assertEqual(rec["planned_utc"], "2026-11-23T00:15:00+00:00")
+        self.assertEqual(rec["planned_utc"], "2026-11-23T02:17:00+00:00")
         self.assertAlmostEqual(rec["delay_minutes"], 5.0, places=1)
         self.assertAlmostEqual(rec["duration_seconds"], 30.0, places=1)
         self.assertEqual(rec["conclusion"], "ok")
         self.assertEqual(rec["trigger_type"], "scheduled")
+        self.assertIn("02:17", rec["delay_note"])
+
+    def test_planned_follows_config_cron_not_hardcoded(self):
+        """计划时刻由 config.schedule.cron 解析：改 cron 即跟随，非硬编码。"""
+        started = dt.datetime(2026, 11, 23, 3, 10, tzinfo=dt.timezone.utc)
+        finished = started + dt.timedelta(seconds=10)
+        alt_cfg = json.loads(json.dumps(CFG))
+        alt_cfg["schedule"]["cron"] = "41 3 * * *"  # UTC 03:41
+        with tempfile.TemporaryDirectory() as td:
+            ud.RUN_LOG_PATH = Path(td) / "run_log.json"
+            rec = ud.append_run_log(alt_cfg, started, finished, [], {}, "x",
+                                    env=SCHEDULED_ENV)
+        self.assertEqual(rec["planned_utc"], "2026-11-23T03:41:00+00:00")
+        self.assertAlmostEqual(rec["delay_minutes"], -31.0, places=1)
+        self.assertIn("03:41", rec["delay_note"])
 
     def test_early_scheduled_trigger_negative_delay(self):
         """定时提前触发 -> 延迟为负，如实记录不裁剪为 0。"""
-        started = dt.datetime(2026, 11, 23, 0, 10, tzinfo=dt.timezone.utc)
+        started = dt.datetime(2026, 11, 23, 2, 10, tzinfo=dt.timezone.utc)
         finished = started + dt.timedelta(seconds=10)
         with tempfile.TemporaryDirectory() as td:
             ud.RUN_LOG_PATH = Path(td) / "run_log.json"
             rec = ud.append_run_log(CFG, started, finished, [], {}, "insufficient",
                                     env=SCHEDULED_ENV)
-        self.assertAlmostEqual(rec["delay_minutes"], -5.0, places=1)
+        self.assertAlmostEqual(rec["delay_minutes"], -7.0, places=1)
 
     def test_manual_does_not_count_schedule_delay(self):
         """手动派发/本地手动：delay_minutes=null，不计入定时延迟统计。"""
@@ -108,7 +124,7 @@ class TestRunLog(unittest.TestCase):
                                   env=SCHEDULED_ENV)
             data = ud.load_json_safe(ud.RUN_LOG_PATH)
             self.assertEqual(len(data["runs"]), 5)
-            self.assertEqual(data["runs"][-1]["planned_utc"], "2026-11-27T00:15:00+00:00")
+            self.assertEqual(data["runs"][-1]["planned_utc"], "2026-11-27T02:17:00+00:00")
 
     def test_no_fabricated_runs(self):
         """新日志仅含本次真实执行，不预填历史日期。"""

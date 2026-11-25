@@ -2,8 +2,8 @@ name: 每日更新市场快照
 
 on:
   schedule:
-    # UTC 00:15 = 北京时间 08:15（审计要求）；GitHub 免费调度可能延迟数分钟，非 SLA
-    - cron: '15 0 * * *'
+    # UTC 02:17 = 北京时间 10:17（避开刻钟/整点拥挤）；GitHub 免费调度可能延迟，非 SLA
+    - cron: '17 2 * * *'
   workflow_dispatch:
 
 permissions:
@@ -35,7 +35,7 @@ jobs:
 
       - name: 记录调度时刻
         run: |
-          echo "计划时间: UTC 00:15 = 北京时间 08:15"
+          echo "计划时间: UTC 02:17 = 北京时间 10:17"
           echo "实际启动(UTC): $(date -u +%Y-%m-%dT%H:%M:%SZ)"
           echo "触发事件: ${{ github.event_name }}"
 

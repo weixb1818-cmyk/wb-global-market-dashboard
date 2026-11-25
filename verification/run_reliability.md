@@ -1,16 +1,16 @@
 # 每日更新可靠性与运行记录（P2）
 
-> 目标：北京时间 08:15 更新，记录计划/实际时间，减少延迟，发现漏跑/失败，提供连续 10 个自然日记录。
+> 目标：北京时间 10:17 更新（原 08:15，2026-11 因大延迟改点），记录计划/实际时间，减少延迟，发现漏跑/失败，提供连续 10 个自然日记录。
 > 边界：**项目运行至今不足 10 个自然日，且未来日期不可预填**。按项目一贯原则（宁可显示不足，也不伪造），本文件给出全部真实记录与可持续收集机制，不编造 10 日数据。
 
 ## 一、计划时间与调度配置
 
 | 项 | 值 |
 |---|---|
-| 计划时间 | 北京时间 08:15（= UTC 00:15 = 东京 09:15） |
-| cron | `15 0 * * *`（UTC） |
+| 计划时间 | 北京时间 10:17（= UTC 02:17 = 东京 11:17）；2026-11 由原 08:15 调整 |
+| cron | `17 2 * * *`（UTC） |
 | 触发方式 | 定时调度 + `workflow_dispatch` 手动 |
-| SLA | 不承诺——GitHub Actions 免费定时无法保证严格准点，延迟数分钟属正常 |
+| SLA | 不承诺——GitHub Actions 免费定时无法保证严格准点，延迟数分钟乃至更久属平台侧限制 |
 | 超时保护 | job `timeout-minutes: 20`；并发组 `daily-snapshot` 防重入（`cancel-in-progress: false`） |
 
 ## 二、时间记录机制（已实现）
@@ -31,7 +31,7 @@
    | `duration_seconds` / `macro_state` / `failed_sources` / `failed_indicators` | 耗时、宏观状态、失败源与失败指标 |
    | `status` / `trigger` | 旧字段名，与 `conclusion` / `trigger_type` 同值（兼容） |
 
-   - **定时延迟**：仅 `scheduled` 计算 `delay_minutes`（实际启动 − 当天 UTC 00:15，提前为负）；`manual_dispatch`/`manual_local` 的 `delay_minutes=null`，`delay_note="手动运行：不计入定时任务延迟统计"`，**不污染定时延迟统计**。
+   - **定时延迟**：仅 `scheduled` 计算 `delay_minutes`（实际启动 − 当天计划时刻，计划时刻由 `config.schedule.cron` 解析、当前为 UTC 02:17，提前为负；脚本不硬编码，改 cron 自动跟随）；`manual_dispatch`/`manual_local` 的 `delay_minutes=null`，`delay_note="手动运行：不计入定时任务延迟统计"`，**不污染定时延迟统计**。
    - 保留最近 60 条（`config.run_log.keep_last`）。
 3. 每次运行均由脚本真实写入，**不预填、不伪造历史运行**。
 
@@ -84,7 +84,7 @@
 
 ### 排查过程与排除项
 
-1. **cron 配置**：本地与远端 `.github/workflows/update.yml` 均为 `15 0 * * *`（UTC 00:15），已错开整点，配置正确、一致。
+1. **cron 配置（排查当时）**：本地与远端 `.github/workflows/update.yml` 均为 `15 0 * * *`（UTC 00:15），已错开整点，配置正确、一致。此为 2026-11 改点前的状态；改点见本节末"本轮调度时点调整"。
 2. **作业本身是否卡住**：三次作业实际时长仅 18/19/21 秒，**排除**脚本执行慢或挂起。
 3. **GitHub 侧排队延迟**：API 的 `created_at` 与 `run_started_at` **完全相等**（差 0 秒），**排除** job 进入执行队列后等待 runner 的排队延迟。
 4. **并发组阻塞**：`concurrency.group=daily-snapshot, cancel-in-progress=false`，但单次运行仅约 20 秒，不存在长时间占用；**排除**。
@@ -98,14 +98,28 @@
 
 > The `schedule` event can be delayed during periods of high loads of GitHub Actions workflow runs. High load times include the start of every hour. If the load is sufficiently high enough, some queued jobs may be dropped. To decrease the chance of delay, schedule your workflow to run at a different time of the hour.
 
-即：schedule 事件在高负载期会被延迟甚至丢弃,官方仅承诺"尽可能"、非 SLA。本仓库 cron 已错开整点（00:15），但仍被延迟数小时,属于免费共享调度资源紧张所致,**不是本项目代码、配置或数据链路的缺陷**。
+即：schedule 事件在高负载期会被延迟甚至丢弃,官方仅承诺"尽可能"、非 SLA。本仓库当时的 cron 已错开整点（00:15），但仍被延迟数小时,属于免费共享调度资源紧张所致,**不是本项目代码、配置或数据链路的缺陷**。
 
 ### 影响与边界
 
 - **数据真实性不受影响**：每次被延迟触发后,脚本都真实取数、生成新快照、无失败源,历史观测正常累积（DXY 等从 2 → 3）。
-- **时效性受影响**：快照实际发布时间不固定在 08:15（北京）,可能推迟数小时；面板各卡 `as_of` 仍标注真实行情日期,`data_note` 明示"非同一时刻实时行情"。
+- **时效性受影响**：快照实际发布时间不固定在计划时刻（改点前为 08:15 北京，改点后为 10:17）,可能推迟数小时；面板各卡 `as_of` 仍标注真实行情日期,`data_note` 明示"非同一时刻实时行情"。
 - **不伪造、不补偿**：延迟照实记录于 `run_log.json`；未因延迟手动补跑或回填记录（审计明确禁止）。
-- **可选缓解（未实施，需审计批准）**：把 cron 改到更冷门的分钟（如 `17 3 * * *`）以降低撞车概率；但这属于调整调度策略、且免费层无法根除延迟,本阶段按"其他工作保持冻结"原则不擅自更改。
+- **缓解已实施（本轮，经用户授权）**：按上条曾列的可选缓解，把 cron 从 UTC 00:15 改到 **UTC 02:17（北京时间 10:17，非刻钟、非 5 倍数分钟）**以降低撞车概率。免费层无法根除延迟,此改动只降低概率、不承诺准点。详见下节。
+
+### 本轮调度时点调整（2026-11，经用户授权）
+
+| 项 | 改点前 | 改点后 |
+|---|---|---|
+| cron | `15 0 * * *`（UTC 00:15） | `17 2 * * *`（UTC 02:17） |
+| 北京时间 | 08:15 | 10:17 |
+| 东京时间 | 09:15 | 11:17 |
+| 触发理由 | 三次定时运行延迟 389/438/572 分钟 | 避开刻钟/整点拥挤，降低撞车概率 |
+
+- **改动文件**：`.github/workflows/update.yml`（cron 及注释/echo）、`config.json`（`schedule.cron`/`planned_local`）、`scripts/update_data.py`（计划时刻改为从 config cron 解析，不再硬编码）、`tests/test_run_log.py`、`README.md`、`verification/README.md`、`PHASE2_DELIVERY.md`、本文件。
+- **计划时刻单一数据源**：脚本 `append_run_log()` 现从 `config.schedule.cron` 解析计划时刻，改 cron 后延迟计算自动跟随；新增测试 `test_planned_follows_config_cron_not_hardcoded` 验证这一点。
+- **生效范围**：新时点自远端合并后的**下一次 scheduled 运行**起生效；此前三次历史运行仍按当时的 00:15 记录，不回填、不重写（审计禁止伪造历史）。
+- **仍未根除**：GitHub 免费层延迟是平台侧客观限制,改点仅降低概率,不作为 SLA。
 
 ## 四、真实运行记录（全部，未伪造）
 
