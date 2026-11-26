@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "updated_at": "2026-11-24T18:47:03+09:00",
+  "updated_at": "2026-11-26T19:51:31+09:00",
   "series": {
     "dxy": [
       {
@@ -17,19 +17,14 @@
         "date": "2026-11-24",
         "value": 104.219,
         "source": "CNBC:.DXY"
+      },
+      {
+        "date": "2026-11-26",
+        "value": 103.726,
+        "source": "CNBC:.DXY"
       }
     ],
     "us2y": [
-      {
-        "date": "2025-04-16",
-        "value": 3.77,
-        "source": "FRED:DGS2"
-      },
-      {
-        "date": "2025-04-17",
-        "value": 3.81,
-        "source": "FRED:DGS2"
-      },
       {
         "date": "2025-04-21",
         "value": 3.75,
@@ -2019,19 +2014,19 @@
         "date": "2026-11-20",
         "value": 4.63,
         "source": "FRED:DGS2"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 4.63,
+        "source": "FRED:DGS2"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 4.63,
+        "source": "FRED:DGS2"
       }
     ],
     "us10y": [
-      {
-        "date": "2025-04-16",
-        "value": 4.29,
-        "source": "FRED:DGS10"
-      },
-      {
-        "date": "2025-04-17",
-        "value": 4.34,
-        "source": "FRED:DGS10"
-      },
       {
         "date": "2025-04-21",
         "value": 4.42,
@@ -4021,19 +4016,19 @@
         "date": "2026-11-20",
         "value": 4.92,
         "source": "FRED:DGS10"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 4.92,
+        "source": "FRED:DGS10"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 4.91,
+        "source": "FRED:DGS10"
       }
     ],
     "us10y_real": [
-      {
-        "date": "2025-04-16",
-        "value": 2.12,
-        "source": "FRED:DFII10"
-      },
-      {
-        "date": "2025-04-17",
-        "value": 2.11,
-        "source": "FRED:DFII10"
-      },
       {
         "date": "2025-04-21",
         "value": 2.2,
@@ -6023,19 +6018,19 @@
         "date": "2026-11-20",
         "value": 2.77,
         "source": "FRED:DFII10"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 2.79,
+        "source": "FRED:DFII10"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 2.79,
+        "source": "FRED:DFII10"
       }
     ],
     "t10y2y": [
-      {
-        "date": "2025-04-17",
-        "value": 0.53,
-        "source": "FRED:T10Y2Y"
-      },
-      {
-        "date": "2025-04-21",
-        "value": 0.67,
-        "source": "FRED:T10Y2Y"
-      },
       {
         "date": "2025-04-22",
         "value": 0.65,
@@ -8025,19 +8020,19 @@
         "date": "2026-11-23",
         "value": 0.29,
         "source": "FRED:T10Y2Y"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 0.28,
+        "source": "FRED:T10Y2Y"
+      },
+      {
+        "date": "2026-11-25",
+        "value": 0.24,
+        "source": "FRED:T10Y2Y"
       }
     ],
     "t10y3m": [
-      {
-        "date": "2025-04-17",
-        "value": 0.0,
-        "source": "FRED:T10Y3M"
-      },
-      {
-        "date": "2025-04-21",
-        "value": 0.08,
-        "source": "FRED:T10Y3M"
-      },
       {
         "date": "2025-04-22",
         "value": 0.08,
@@ -10027,19 +10022,19 @@
         "date": "2026-11-23",
         "value": 0.55,
         "source": "FRED:T10Y3M"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 0.55,
+        "source": "FRED:T10Y3M"
+      },
+      {
+        "date": "2026-11-25",
+        "value": 0.51,
+        "source": "FRED:T10Y3M"
       }
     ],
     "vix": [
-      {
-        "date": "2025-05-07",
-        "value": 23.55,
-        "source": "FRED:VIXCLS"
-      },
-      {
-        "date": "2025-05-08",
-        "value": 22.48,
-        "source": "FRED:VIXCLS"
-      },
       {
         "date": "2025-05-09",
         "value": 21.9,
@@ -12029,19 +12024,19 @@
         "date": "2026-11-20",
         "value": 35.89,
         "source": "FRED:VIXCLS"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 26.62,
+        "source": "FRED:VIXCLS"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 26.36,
+        "source": "FRED:VIXCLS"
       }
     ],
     "hy_oas": [
-      {
-        "date": "2025-05-16",
-        "value": 3.16,
-        "source": "FRED:BAMLH0A0HYM2"
-      },
-      {
-        "date": "2025-05-19",
-        "value": 3.21,
-        "source": "FRED:BAMLH0A0HYM2"
-      },
       {
         "date": "2025-05-20",
         "value": 3.2,
@@ -14031,19 +14026,19 @@
         "date": "2026-11-20",
         "value": 3.76,
         "source": "FRED:BAMLH0A0HYM2"
+      },
+      {
+        "date": "2026-11-23",
+        "value": 3.63,
+        "source": "FRED:BAMLH0A0HYM2"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 3.72,
+        "source": "FRED:BAMLH0A0HYM2"
       }
     ],
     "sp500": [
-      {
-        "date": "2025-04-23",
-        "value": 5375.86,
-        "source": "FRED:SP500"
-      },
-      {
-        "date": "2025-04-24",
-        "value": 5484.77,
-        "source": "FRED:SP500"
-      },
       {
         "date": "2025-04-25",
         "value": 5525.21,
@@ -16032,20 +16027,20 @@
       {
         "date": "2026-11-23",
         "value": 7237.17,
+        "source": "FRED:SP500"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 7201.09,
+        "source": "FRED:SP500"
+      },
+      {
+        "date": "2026-11-25",
+        "value": 7182.78,
         "source": "CNBC:.SPX"
       }
     ],
     "nasdaq100": [
-      {
-        "date": "2025-04-23",
-        "value": 18693.26,
-        "source": "FRED:NASDAQ100"
-      },
-      {
-        "date": "2025-04-24",
-        "value": 19214.4,
-        "source": "FRED:NASDAQ100"
-      },
       {
         "date": "2025-04-25",
         "value": 19432.56,
@@ -18028,12 +18023,22 @@
       },
       {
         "date": "2026-11-20",
-        "value": 25028.982,
-        "source": "CNBC:.NDX"
+        "value": 25028.98,
+        "source": "FRED:NASDAQ100"
       },
       {
         "date": "2026-11-23",
-        "value": 26746.096,
+        "value": 26746.1,
+        "source": "FRED:NASDAQ100"
+      },
+      {
+        "date": "2026-11-24",
+        "value": 26214.17,
+        "source": "FRED:NASDAQ100"
+      },
+      {
+        "date": "2026-11-25",
+        "value": 26046.897,
         "source": "CNBC:.NDX"
       }
     ],
@@ -18052,6 +18057,11 @@
         "date": "2026-11-24",
         "value": 3619.0,
         "source": "CNBC:@GC.1"
+      },
+      {
+        "date": "2026-11-26",
+        "value": 3553.0,
+        "source": "CNBC:@GC.1"
       }
     ],
     "wti": [
@@ -18068,6 +18078,11 @@
       {
         "date": "2026-11-24",
         "value": 80.11,
+        "source": "CNBC:@CL.1"
+      },
+      {
+        "date": "2026-11-26",
+        "value": 83.99,
         "source": "CNBC:@CL.1"
       }
     ],
@@ -18086,6 +18101,11 @@
         "date": "2026-11-24",
         "value": 5.454,
         "source": "CNBC:@HG.1"
+      },
+      {
+        "date": "2026-11-26",
+        "value": 5.38,
+        "source": "CNBC:@HG.1"
       }
     ],
     "btc": [
@@ -18103,6 +18123,11 @@
         "date": "2026-11-24",
         "value": 60048.9,
         "source": "CNBC:BTC="
+      },
+      {
+        "date": "2026-11-26",
+        "value": 60476.37,
+        "source": "CNBC:BTC="
       }
     ],
     "eth": [
@@ -18119,6 +18144,11 @@
       {
         "date": "2026-11-24",
         "value": 1686.86,
+        "source": "CNBC:ETH="
+      },
+      {
+        "date": "2026-11-26",
+        "value": 1693.66,
         "source": "CNBC:ETH="
       }
     ],
@@ -18262,6 +18292,16 @@
         "date": "2026-11-24",
         "value": 159.35994363,
         "source": "currency-api/jsDelivr"
+      },
+      {
+        "date": "2026-11-25",
+        "value": 159.0930161,
+        "source": "currency-api/jsDelivr"
+      },
+      {
+        "date": "2026-11-26",
+        "value": 159.18754369,
+        "source": "currency-api/jsDelivr"
       }
     ],
     "usdcnh": [
@@ -18403,6 +18443,16 @@
       {
         "date": "2026-11-24",
         "value": 6.66471916,
+        "source": "currency-api/jsDelivr"
+      },
+      {
+        "date": "2026-11-25",
+        "value": 6.67335734,
+        "source": "currency-api/jsDelivr"
+      },
+      {
+        "date": "2026-11-26",
+        "value": 6.66080728,
         "source": "currency-api/jsDelivr"
       }
     ]

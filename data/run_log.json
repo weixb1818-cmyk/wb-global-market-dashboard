@@ -1,9 +1,9 @@
 {
   "schedule": {
-    "cron": "15 0 * * *",
+    "cron": "17 2 * * *",
     "cron_timezone": "UTC",
-    "planned_local": "北京时间 08:15（= UTC 00:15 = 东京 09:15）",
-    "note": "GitHub Actions 免费调度无法保证严格准点；延迟数分钟属正常，不承诺 SLA"
+    "planned_local": "北京时间 10:17（= UTC 02:17 = 东京 11:17）",
+    "note": "时点由 UTC 00:15 调整为 02:17（避开刻钟/整点拥挤）；GitHub Actions 免费调度无法保证严格准点，延迟数分钟乃至更久均属可能，不承诺 SLA"
   },
   "note": "仅记录脚本真实发生的执行；script_started/snapshot_generated 恒为 true。workflow 解析失败等‘脚本未启动’记录见 verification/github_actions_runs.json。定时延迟仅对 scheduled 计算，手动运行不计入。",
   "runs": [
@@ -103,6 +103,25 @@
       "delay_minutes": 572.0,
       "delay_note": "定时运行：按当天 UTC 00:15 计划触发时间计算实际延迟",
       "duration_seconds": 5.9,
+      "status": "ok",
+      "macro_state": "insufficient",
+      "failed_sources": [],
+      "failed_indicators": [],
+      "trigger": "scheduled"
+    },
+    {
+      "run_id": "45805154438",
+      "trigger_type": "scheduled",
+      "started_at": "2026-11-26T10:51:26+00:00",
+      "completed_at": "2026-11-26T10:51:31+00:00",
+      "conclusion": "ok",
+      "script_started": true,
+      "snapshot_generated": true,
+      "commit_sha": "b291a3d4d7bbdd6c07c921ea2892d89ef97ffb81",
+      "planned_utc": "2026-11-26T02:17:00+00:00",
+      "delay_minutes": 514.4,
+      "delay_note": "定时运行：按当天 UTC 02:17 计划触发时间计算实际延迟",
+      "duration_seconds": 5.7,
       "status": "ok",
       "macro_state": "insufficient",
       "failed_sources": [],
