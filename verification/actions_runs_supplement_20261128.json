@@ -1,0 +1,64 @@
+{
+  "title": "GitHub Actions 运行证据补充（截至 2026-11-28）",
+  "purpose": "补充审计证据：11-26/27/28 三次 scheduled 运行的权威字段；11-25 漏跑事实；区分调度派发延迟与 Runner 执行延迟。",
+  "generated_at_utc": "2026-11-28T12:32:23+00:00",
+  "source": "GitHub REST API: /actions/runs/{id} 与 /actions/runs/{id}/jobs；原始响应由本文件固化字段，未修改。",
+  "static_evidence_unchanged": "verification/github_actions_runs.json 为早期静态证据，本轮不改动；本文件为追加补充。",
+  "target_baseline_note": "验收口径区分：原始目标 UTC 00:15（北京 08:15），2026-11-25 起调整为当前目标 UTC 02:17（北京 10:17）。改点后三次运行按当前目标 02:17 计延迟；改点前按 00:15 计。两者不是同一验收口径。",
+  "scheduled_runs": [
+    {
+      "run_id": "45805154438",
+      "date_utc": "2026-11-26",
+      "event": "schedule",
+      "created_at": "2026-11-26T10:51:11Z",
+      "run_started_at": "2026-11-26T10:51:11Z",
+      "conclusion": "success",
+      "head_sha": "b291a3d4d7bbdd6c07c921ea2892d89ef97ffb81",
+      "job_completed_at": "2026-11-26T10:51:35Z",
+      "workflow_updated_at": "2026-11-26T10:51:36Z",
+      "planned_utc": "2026-11-26T02:17:00+00:00",
+      "dispatch_delay_min": 514.2,
+      "runner_queue_sec": 0.0,
+      "job_duration_sec": 22.0
+    },
+    {
+      "run_id": "45985412430",
+      "date_utc": "2026-11-27",
+      "event": "schedule",
+      "created_at": "2026-11-27T10:50:03Z",
+      "run_started_at": "2026-11-27T10:50:03Z",
+      "conclusion": "success",
+      "head_sha": "5b9039cecb4300ff20cb021f60541c5e6914212b",
+      "job_completed_at": "2026-11-27T10:50:22Z",
+      "workflow_updated_at": "2026-11-27T10:50:23Z",
+      "planned_utc": "2026-11-27T02:17:00+00:00",
+      "dispatch_delay_min": 513.0,
+      "runner_queue_sec": 0.0,
+      "job_duration_sec": 17.0
+    },
+    {
+      "run_id": "46134884283",
+      "date_utc": "2026-11-28",
+      "event": "schedule",
+      "created_at": "2026-11-28T10:22:30Z",
+      "run_started_at": "2026-11-28T10:22:30Z",
+      "conclusion": "success",
+      "head_sha": "49e5be545f262406001dcebc42ef77ababadb7c7",
+      "job_completed_at": "2026-11-28T10:22:53Z",
+      "workflow_updated_at": "2026-11-28T10:22:54Z",
+      "planned_utc": "2026-11-28T02:17:00+00:00",
+      "dispatch_delay_min": 485.5,
+      "runner_queue_sec": 0.0,
+      "job_duration_sec": 21.0
+    }
+  ],
+  "missed_run": {
+    "date_utc": "2026-11-25",
+    "fact": "2026-11-25 无 event=schedule 的 Actions 运行记录（GitHub Actions API 全量核对，total_count=17）。",
+    "event_expected": "schedule",
+    "actual": "无 scheduled 运行；当日仅 2 次由提交触发的 dynamic（github-pages[bot] 页面发布），非 scheduled。",
+    "classification": "正式计为漏跑，不以其他日期成功运行抵消，不补造。",
+    "cause_note": "符合 GitHub 官方说明：schedule 事件在高负载期可能被延迟甚至丢弃（dropped），属免费共享调度器平台侧限制，非本项目代码/配置缺陷。"
+  },
+  "delay_decomposition_note": "dispatch_delay_min = created_at − 当日计划时刻(UTC 02:17)，即 GitHub 调度器派发事件前的延迟；runner_queue_sec = run_started_at − created_at，即 job 等待 runner 的排队时间（三次均为 0 秒）；job_duration_sec = job completed_at − started_at，即实际执行耗时（约 20 秒）。结论：延迟几乎全部发生在调度器派发之前，而非 Runner 执行阶段。"
+}
