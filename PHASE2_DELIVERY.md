@@ -46,7 +46,7 @@
 
 ## 五、P2 更新可靠性
 
-- 计划时间北京时间 10:17（cron UTC 02:17，由原 00:15 调整以避开高峰），workflow 记录计划/启动/完成时刻。
+- 计划时间北京时间 10:17（cron UTC 02:17，由原 00:15 调整；实测未改善延迟，见 `verification/run_reliability.md`），workflow 记录计划/启动/完成时刻。
 - `data/run_log.json` 追加式记录延迟、时长、状态、失败源；失败/漏跑可逐日核对。
 - 修复 workflow 遗漏：溯源文件纳入每日 `git add`。
 - **真实记录**：6 次 Actions 运行（11-22、11-23 两天；5 success + 1 failure），固化于 `verification/github_actions_runs.json`。其中 failure（`45190822884`）为本阶段首次提交触发、因 workflow YAML 语法错误在解析阶段失败，已修复并以 `45192190028` success 闭环；详见 `verification/run_reliability.md`。当前快照与该 success run 同批次，日志见 `verification/update_run.log`（原始步骤日志 `actions_run_45192190028.log`）。

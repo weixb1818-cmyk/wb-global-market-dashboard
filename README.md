@@ -69,7 +69,7 @@ python3 scripts/update_data.py                   # 抓取真实数据，生成�
 1. 将本目录推送到 GitHub 仓库（例如 `global-market-dashboard`）。
 2. 进入 `Settings → Pages`，Source 选择 `Deploy from a branch`，分支 `main`、目录 `/ (root)`，保存。
 3. 进入 `Actions` 标签，确认工作流 `每日更新市场快照` 已启用；也可点 `Run workflow` 手动触发一次。
-4. 定时规则为 UTC `02:17`（北京时间 10:17 / 东京时间 11:17，避开刻钟与整点拥挤）。GitHub 免费定时调度不承诺准点，可能延迟数分钟乃至更久，属平台侧客观限制。工作流会运行测试、抓取数据、提交 `data/*.json/js`，Pages 随之重新发布。
+4. 定时规则为 UTC `02:17`（北京时间 10:17 / 东京时间 11:17；2026-11 由原 00:15 调整，实测未改善延迟，详见 `verification/run_reliability.md`）。GitHub 免费定时调度不承诺准点，实测延迟可达数小时，属平台侧客观限制。工作流会运行测试、抓取数据、提交 `data/*.json/js`，Pages 随之重新发布。
 5. 访问 `https://<你的用户名>.github.io/<仓库名>/`。
 
 无数据库、无账号、无实时 WebSocket、无浏览器端 API Key，托管成本为零。

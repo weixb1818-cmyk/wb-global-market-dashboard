@@ -2,7 +2,7 @@ name: 每日更新市场快照
 
 on:
   schedule:
-    # UTC 02:17 = 北京时间 10:17（避开刻钟/整点拥挤）；GitHub 免费调度可能延迟，非 SLA
+    # UTC 02:17 = 北京时间 10:17（2026-11 由 00:15 调整，实测未改善延迟）；GitHub 免费调度可能延迟，非 SLA
     - cron: '17 2 * * *'
   workflow_dispatch:
 

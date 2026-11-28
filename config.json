@@ -5,7 +5,7 @@
     "cron": "17 2 * * *",
     "cron_timezone": "UTC",
     "planned_local": "北京时间 10:17（= UTC 02:17 = 东京 11:17）",
-    "note": "时点由 UTC 00:15 调整为 02:17（避开刻钟/整点拥挤）；GitHub Actions 免费调度无法保证严格准点，延迟数分钟乃至更久均属可能，不承诺 SLA"
+    "note": "时点由 UTC 00:15 调整为 02:17（尝试避开拥挤，实测未改善延迟，见 verification/run_reliability.md）；GitHub Actions 免费调度无法保证严格准点，实测延迟可达数小时，不承诺 SLA"
   },
   "run_log": {
     "path": "data/run_log.json",
