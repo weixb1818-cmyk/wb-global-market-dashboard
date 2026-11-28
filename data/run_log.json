@@ -146,6 +146,25 @@
       "failed_sources": [],
       "failed_indicators": [],
       "trigger": "scheduled"
+    },
+    {
+      "run_id": "46134884283",
+      "trigger_type": "scheduled",
+      "started_at": "2026-11-28T10:22:43+00:00",
+      "completed_at": "2026-11-28T10:22:49+00:00",
+      "conclusion": "ok",
+      "script_started": true,
+      "snapshot_generated": true,
+      "commit_sha": "49e5be545f262406001dcebc42ef77ababadb7c7",
+      "planned_utc": "2026-11-28T02:17:00+00:00",
+      "delay_minutes": 485.7,
+      "delay_note": "定时运行：按当天 UTC 02:17 计划触发时间计算实际延迟",
+      "duration_seconds": 6.5,
+      "status": "ok",
+      "macro_state": "insufficient",
+      "failed_sources": [],
+      "failed_indicators": [],
+      "trigger": "scheduled"
     }
   ]
 }
